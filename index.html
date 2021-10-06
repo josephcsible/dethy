@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Dethy</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style type="text/css">
+      .mafia {
+        color: red;
+      }
+
+      .town {
+        color: green;
+      }
+    </style>
+    <script type="module">
+      import { html, Component, render } from 'https://unpkg.com/htm/preact/standalone.module.js';
+
+      const phases = {
+        NAMEENTRY: "nameentry",
+        NIGHTPLAYER: "nightplayer",
+        NIGHTCHOICE: "nightchoice",
+        NIGHTRESULT: "nightresult",
+        DAY: "day",
+        ENDGAME: "endgame"
+      };
+
+      const roles = {
+        MAFIAGOON: "Mafia Goon",
+        SANECOP: "Town Sane Cop",
+        INSANECOP: "Town Insane Cop",
+        PARANOIDCOP: "Town Paranoid Cop",
+        NAIVECOP: "Town Naïve Cop"
+      };
+
+      const GUILTY = html`<span class="mafia">Guilty</span>`;
+      const INNOCENT = html`<span class="town">Innocent</span>`;
+
+      function shuffleRoles() {
+        let array = [roles.MAFIAGOON, roles.SANECOP, roles.INSANECOP, roles.PARANOIDCOP, roles.NAIVECOP];
+        for (let i = array.length - 1; i > 0; --i) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      function getInvestigationResult(investigatorRole, investigateeRole) {
+        const guilty = investigatorRole === roles.PARANOIDCOP ? true :
+                       investigatorRole === roles.NAIVECOP ? false :
+                       investigatorRole === roles.INSANECOP ? investigateeRole !== roles.MAFIAGOON :
+                       investigateeRole === roles.MAFIAGOON;
+        return guilty ? GUILTY : INNOCENT;
+      }
+
+      function NameEntry({ players, updateNames, startGame }) {
+        return html`
+          <form onSubmit=${startGame}>
+            Enter player names:
+            <ol>
+              ${players.map((player, i) => html`
+                <li key=${i}><input type="text" value=${player.name} onInput=${updateNames[i]} /></li>
+              `)}
+            </ol>
+            <button type="submit">Start Game</button>
+          </form>
+        `;
+      }
+
+      function Actions({ actions, showhidden }) {
+        return html`
+          Action Log:
+          <ul>
+            ${actions.map(({ action, hidden }, i) => (!hidden || showhidden) && html`
+              <li key=${i}>${action}</li>
+            `)}
+          </ul>
+          <hr />
+        `;
+      }
+
+      class NightChoice extends Component {
+        selectPlayer = ({ target: { value } }) => this.setState({ selectedPlayer: parseInt(value) });
+
+        playerDisabled(i) {
+          if(i === this.props.playerTurn) {
+            return html` <i>(You cannot choose yourself.)</i>`;
+          } else if(!this.props.players[i].alive) {
+            return html` <i>(You cannot choose dead players.)</i>`;
+          } else if(this.props.day === 0 && this.props.players[this.props.playerTurn].role === roles.MAFIAGOON) {
+            return html` <i>(The Mafia Goon may not kill on Night 0.)</i>`;
+          } else {
+            return null;
+          }
+        }
+
+        choose = event => {
+          event.preventDefault();
+          if(this.state.selectedPlayer !== -2) {
+            this.props.choose(this.state.selectedPlayer);
+          }
+        }
+
+        render({ players, day, playerTurn }, { selectedPlayer = -2 }) {
+          const giveRole = day === 0 ? html`You are ${players[playerTurn].role === roles.MAFIAGOON ? html`the <span class="mafia">Mafia Goon</span>` : html`a <span class="town">Town Cop</span>`}.<br />` : null;
+          return html`
+            <form onSubmit=${this.choose}>
+              ${giveRole}
+              Choose a player to ${players[playerTurn].role === roles.MAFIAGOON ? "kill" : "investigate"}:
+              <ol>
+                ${players.map((player, i) => html`
+                  <li key=${i}><label>
+                    <input type="radio" name="nightchoice" value=${i} checked=${selectedPlayer === i} disabled=${this.playerDisabled(i) !== null} onClick=${this.selectPlayer} />
+                    ${player.name}
+                    ${this.playerDisabled(i)}
+                  </label></li>
+                `)}
+                <li><label><input type="radio" name="nightchoice" value=-1 checked=${selectedPlayer === -1} onClick=${this.selectPlayer} /><i>Nobody</i></label></li>
+              </ol>
+              <button type="submit" disabled=${selectedPlayer === -2}>Confirm Choice</button>
+            </form>
+          `;
+        }
+      }
+
+      function NightResult({ players, playerTurn, investigatedPlayer }) {
+        const role = players[playerTurn].role;
+        if(role === roles.MAFIAGOON) {
+          return html`Your kill choice has been submitted.`;
+        } else if(investigatedPlayer === -1) {
+          return html`You did not investigate anyone tonight.`;
+        } else {
+          return html`As a result of your investigation, you believe that ${players[investigatedPlayer].name} is ${getInvestigationResult(role, players[investigatedPlayer].role)}.`;
+        }
+      }
+
+      class DayChoice extends Component {
+        selectPlayer = ({ target: { value } }) => this.setState({ selectedPlayer: parseInt(value) });
+
+        playerDisabled(i) {
+          if(!this.props.players[i].alive) {
+            return html` <i>(Dead players cannot be lynched.)</i>`;
+          } else {
+            return null;
+          }
+        }
+
+        choose = event => {
+          event.preventDefault();
+          if(this.state.selectedPlayer !== -2) {
+            this.props.choose(this.state.selectedPlayer);
+          }
+        }
+
+        render({ players }, { selectedPlayer = -2 }) {
+          return html`
+            <form onSubmit=${this.choose}>
+              Who did the Town vote to lynch?
+              <ol>
+                ${players.map((player, i) => html`
+                  <li key=${i}><label>
+                    <input type="radio" name="nightchoice" value=${i} checked=${selectedPlayer === i} disabled=${this.playerDisabled(i) !== null} onClick=${this.selectPlayer} />
+                    ${player.name}
+                    ${this.playerDisabled(i)}
+                  </label></li>
+                `)}
+                <li><label><input type="radio" name="nightchoice" value=-1 checked=${selectedPlayer === -1} onClick=${this.selectPlayer} /><i>Nobody</i></label></li>
+              </ol>
+              <button type="submit" disabled=${selectedPlayer === -2}>Confirm Choice</button>
+            </form>
+          `;
+        }
+      }
+
+      class Dethy extends Component {
+        state = {
+          phase: phases.NAMEENTRY,
+          day: 0,
+          players: [
+            {
+              name: "Player 1",
+              role: roles.MAFIAGOON,
+              alive: true,
+            },
+            {
+              name: "Player 2",
+              role: roles.SANECOP,
+              alive: true,
+            },
+            {
+              name: "Player 3",
+              role: roles.INSANECOP,
+              alive: true,
+            },
+            {
+              name: "Player 4",
+              role: roles.PARANOIDCOP,
+              alive: true,
+            },
+            {
+              name: "Player 5",
+              role: roles.NAIVECOP,
+              alive: true,
+            },
+          ],
+          playerTurn: 0,
+          dyingPlayer: -1,
+          investigatedPlayer: -1,
+          actions: [{action: html`Night 0`, hidden: true}]
+        };
+
+        makeUpdateName = i => ({ target: { value: name } }) => this.setState(prevState => {
+          const players = [...prevState.players];
+          players[i] = {...players[i], name};
+          return {players};
+        });
+
+        startGame = event => {
+          event.preventDefault();
+          this.setState(prevState => {
+            const shuffledRoles = shuffleRoles();
+            return {
+              phase: phases.NIGHTPLAYER,
+              day: 0,
+              players: prevState.players.map(({ name }, i) => ({
+                name,
+                role: shuffledRoles[i],
+                alive: true
+              })),
+              playerTurn: 0,
+              dyingPlayer: -1,
+              investigatedPlayer: -1,
+              actions: [{action: html`Night 0`, hidden: true}]
+            };
+          });
+        };
+
+        showNightChoice = event => {
+          event.preventDefault();
+          this.setState({ phase: phases.NIGHTCHOICE });
+        };
+
+        confirmNightChoice = selectedPlayer => this.setState(prevState => {
+          if(prevState.players[prevState.playerTurn].role === roles.MAFIAGOON) {
+            return {
+              dyingPlayer: selectedPlayer,
+              phase: phases.NIGHTRESULT,
+            };
+          } else {
+            const actions = [...prevState.actions];
+            if(selectedPlayer !== -1) {
+              actions.push({action: html`<span class="town">${prevState.players[prevState.playerTurn].name}</span> investigated <span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span>`, hidden: true});
+            }
+            return {
+              investigatedPlayer: selectedPlayer,
+              phase: phases.NIGHTRESULT,
+              actions
+            };
+          }
+        });
+
+        advanceNight = event => {
+          event.preventDefault();
+          this.setState(prevState => {
+            for(let i = prevState.playerTurn + 1; i < 5; ++i) {
+              if(prevState.players[i].alive) {
+                return {
+                  phase: phases.NIGHTPLAYER,
+                  playerTurn: i
+                };
+              }
+            }
+            const day = prevState.day + 1;
+            const players = [...prevState.players], actions = [...prevState.actions];
+            if(prevState.dyingPlayer !== -1) {
+              players[prevState.dyingPlayer] = {...players[prevState.dyingPlayer], alive: false};
+              actions.push({action: html`<span class="town">${players[prevState.dyingPlayer].name}</span> was killed`, hidden: false});
+            }
+            actions.push({action: html`Day ${day}`, hidden: false});
+            return {
+              phase: phases.DAY,
+              day,
+              players,
+              actions
+            }
+          });
+        };
+
+        confirmDayChoice = selectedPlayer => this.setState(prevState => {
+          const players = [...prevState.players], actions = [...prevState.actions];
+          if(selectedPlayer !== -1) {
+            players[selectedPlayer] = {...players[selectedPlayer], alive: false};
+            actions.push({action: html`<span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span> was lynched`, hidden: false});
+          }
+          if((selectedPlayer !== -1 && players[selectedPlayer].role === roles.MAFIAGOON) || players.filter(player => player.alive).length <= 3) {
+            return {
+              phase: phases.ENDGAME,
+              players,
+              actions
+            };
+          } else {
+            let playerTurn = -1;
+            while(!prevState.players[++playerTurn].alive);
+            actions.push({action: html`Night ${prevState.day}`, hidden: false});
+            return {
+              phase: phases.NIGHTPLAYER,
+              players,
+              playerTurn,
+              actions: [...prevState.actions, {action: html`Night ${prevState.day}`, hidden: false}]
+            };
+          }
+        });
+
+        newGame = event => {
+          event.preventDefault();
+          this.setState({ phase: phases.NAMEENTRY });
+        }
+
+        constructor(props) {
+          super(props);
+          this.updateNames = [];
+          for(let i = 0; i < 5; ++i) {
+            this.updateNames[i] = this.makeUpdateName(i);
+          }
+        }
+
+        render(props, state) {
+          switch(state.phase) {
+          case phases.NAMEENTRY:
+            return html`
+              <${NameEntry} players=${state.players} updateNames=${this.updateNames} startGame=${this.startGame} />
+            `;
+          case phases.NIGHTPLAYER:
+            return html`
+              <form onSubmit=${this.showNightChoice}>
+                Give the device to ${state.players[state.playerTurn].name}, then press Continue once everyone else is looking away.<br />
+                <button type="submit">Continue</button>
+              </form>
+            `;
+          case phases.NIGHTCHOICE:
+            return html`
+              <${Actions} actions=${state.actions} />
+              <${NightChoice} players=${state.players} day=${state.day} playerTurn=${state.playerTurn} choose=${this.confirmNightChoice} />
+            `;
+          case phases.NIGHTRESULT:
+            return html`
+              <${Actions} actions=${state.actions} />
+              <form onSubmit=${this.advanceNight}>
+                <${NightResult} players=${state.players} playerTurn=${state.playerTurn} investigatedPlayer=${state.investigatedPlayer} /><br />
+                <button type="submit">Continue</button>
+              </form>
+            `;
+          case phases.DAY:
+            return html`
+              <${Actions} actions=${state.actions} />
+              <${DayChoice} players=${state.players} choose=${this.confirmDayChoice} />
+            `;
+          case phases.ENDGAME:
+            return html`
+              <${Actions} actions=${state.actions} showhidden />
+              <form onSubmit=${this.newGame}>
+                ${state.players.some(player => player.alive && player.role === roles.MAFIAGOON) ? html`<span class="mafia">Mafia Wins!</span>` : html`<span class="town">Town Wins!</span>`}<br />
+                Role List:
+                ${state.players.map((player, i) => html`
+                  <li key=${i} class=${player.role === roles.MAFIAGOON ? "mafia" : "town"}>${player.name} - ${player.role}</li>
+                `)}
+                <button type="submit">New Game</button>
+              </form>
+            `;
+          };
+        }
+      }
+
+      render(html`<${Dethy} />`, document.body);
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
