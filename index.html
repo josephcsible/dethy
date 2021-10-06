@@ -299,13 +299,13 @@
             };
           } else {
             let playerTurn = -1;
-            while(!prevState.players[++playerTurn].alive);
+            while(!players[++playerTurn].alive);
             actions.push({action: html`Night ${prevState.day}`, hidden: false});
             return {
               phase: phases.NIGHTPLAYER,
               players,
               playerTurn,
-              actions: [...prevState.actions, {action: html`Night ${prevState.day}`, hidden: false}]
+              actions
             };
           }
         });
