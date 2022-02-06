@@ -107,14 +107,14 @@
           } else if(this.props.day === 0 && this.props.players[this.props.playerTurn].role === roles.MAFIAGOON) {
             return html` <i>(The Mafia Goon may not kill on Night 0.)</i>`;
           } else if(this.props.preventBlunders && this.props.players[this.props.playerTurn].investigations[i]) {
-            return html` <i>(Blunder: Reinvestigating a player is never useful)</i>`;
+            return html` <i>(Blunder: Reinvestigating a player is never useful.)</i>`;
           } else {
             return null;
           }
         }
 
         blunder() {
-          return this.props.preventBlunders && !(this.props.day === 0 && this.props.players[this.props.playerTurn].role === roles.MAFIAGOON) && "(Blunder: Skipping your night action is never useful)";
+          return this.props.preventBlunders && !(this.props.day === 0 && this.props.players[this.props.playerTurn].role === roles.MAFIAGOON) && "(Blunder: Skipping your night action is never useful.)";
         }
 
         choose = event => {
@@ -193,7 +193,7 @@
         }
 
         lyloBlunder() {
-          return this.props.preventBlunders && this.props.players.filter(player => player.alive).length <= 3 && "(Blunder: The Mafia would immediately win)";
+          return this.props.preventBlunders && this.props.players.filter(player => player.alive).length <= 3 && "(Blunder: The Mafia would immediately win.)";
         }
 
         choose = event => {
