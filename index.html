@@ -155,13 +155,17 @@
               ${giveRole}
               Choose a player to ${players[playerTurn].role === roles.MAFIAGOON ? "kill" : "investigate"}:
               <ol>
-                ${players.map((player, i) => html`
-                  <li key=${i}><label>
-                    <input type="radio" name="nightchoice" value=${i} checked=${selectedPlayer === i} disabled=${this.playerDisabled(i) !== null} onClick=${this.selectPlayer} />
-                    ${player.name}
-                    ${this.playerDisabled(i)}
-                  </label></li>
-                `)}
+                ${players.map((player, i) => {
+                  let investigation = players[playerTurn].investigations[i];
+                  if(investigation !== null) investigation = html` (${investigation})`;
+                  return html`
+                    <li key=${i}><label>
+                      <input type="radio" name="nightchoice" value=${i} checked=${selectedPlayer === i} disabled=${this.playerDisabled(i) !== null} onClick=${this.selectPlayer} />
+                      ${player.name}
+                      ${investigation}
+                      ${this.playerDisabled(i)}
+                    </label></li>`;
+                })}
                 <li><label><input type="radio" name="nightchoice" value=-1 checked=${selectedPlayer === -1} disabled=${this.blunder()} onClick=${this.selectPlayer} /><i>Nobody ${this.blunder()}</i></label></li>
               </ol>
               <button type="submit" disabled=${selectedPlayer === -2}>Confirm Choice</button>
@@ -256,31 +260,31 @@
               name: "Player 1",
               role: roles.MAFIAGOON,
               alive: true,
-              investigations: [false, false, false, false, false],
+              investigations: [null, null, null, null, null],
             },
             {
               name: "Player 2",
               role: roles.SANECOP,
               alive: true,
-              investigations: [false, false, false, false, false],
+              investigations: [null, null, null, null, null],
             },
             {
               name: "Player 3",
               role: roles.INSANECOP,
               alive: true,
-              investigations: [false, false, false, false, false],
+              investigations: [null, null, null, null, null],
             },
             {
               name: "Player 4",
               role: roles.PARANOIDCOP,
               alive: true,
-              investigations: [false, false, false, false, false],
+              investigations: [null, null, null, null, null],
             },
             {
               name: "Player 5",
               role: roles.NAIVECOP,
               alive: true,
-              investigations: [false, false, false, false, false],
+              investigations: [null, null, null, null, null],
             },
           ],
           preventBlunders: true,
@@ -309,7 +313,7 @@
                 name,
                 role: shuffledRoles[i],
                 alive: true,
-                investigations: [false, false, false, false, false],
+                investigations: [null, null, null, null, null],
               })),
               playerTurn: 0,
               dyingPlayer: -1,
@@ -334,7 +338,7 @@
             const players = [...prevState.players], actions = [...prevState.actions];
             if(selectedPlayer !== -1) {
               const investigations = [...players[prevState.playerTurn].investigations];
-              investigations[selectedPlayer] = true;
+              investigations[selectedPlayer] = getInvestigationResult(players[prevState.playerTurn].role, players[selectedPlayer].role);
               players[prevState.playerTurn] = {...players[prevState.playerTurn], investigations};
               actions.push({action: html`<span class="town">${prevState.players[prevState.playerTurn].name}</span> investigated <span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span>`, hidden: true});
             }
