@@ -69,7 +69,7 @@
         return guilty ? GUILTY : INNOCENT;
       }
 
-      function NameEntry({ players, updateNames, startGame }) {
+      function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, startGame }) {
         return html`
           <form onSubmit=${startGame}>
             Enter player names:
@@ -78,6 +78,7 @@
                 <li key=${i}><input type="text" value=${player.name} onInput=${updateNames[i]} /></li>
               `)}
             </ol>
+            <label><input type="checkbox" checked=${preventBlunders} onClick=${updatePreventBlunders} />Prevent blunders</label><br />
             <button type="submit">Start Game</button>
           </form>
         `;
@@ -219,6 +220,7 @@
               alive: true,
             },
           ],
+          preventBlunders: true,
           playerTurn: 0,
           dyingPlayer: -1,
           investigatedPlayer: -1,
@@ -230,6 +232,8 @@
           players[i] = {...players[i], name};
           return {players};
         });
+
+        updatePreventBlunders = event => this.setState({ preventBlunders: event.target.checked });
 
         startGame = event => {
           event.preventDefault();
@@ -344,7 +348,7 @@
           switch(state.phase) {
           case phases.NAMEENTRY:
             return html`
-              <${NameEntry} players=${state.players} updateNames=${this.updateNames} startGame=${this.startGame} />
+              <${NameEntry} players=${state.players} updateNames=${this.updateNames} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} startGame=${this.startGame} />
             `;
           case phases.NIGHTPLAYER:
             return html`
