@@ -169,7 +169,8 @@
           }
         }
 
-        render({ players }, { selectedPlayer = -2 }) {
+        render({ players, preventBlunders }, { selectedPlayer = -2 }) {
+          const lyloBlunder = preventBlunders && players.filter(player => player.alive).length <= 3 && "(Blunder: The Mafia would immediately win)";
           return html`
             <form onSubmit=${this.choose}>
               Who did the Town vote to lynch?
@@ -181,7 +182,7 @@
                     ${this.playerDisabled(i)}
                   </label></li>
                 `)}
-                <li><label><input type="radio" name="nightchoice" value=-1 checked=${selectedPlayer === -1} onClick=${this.selectPlayer} /><i>Nobody</i></label></li>
+                <li><label><input type="radio" name="nightchoice" value=-1 checked=${selectedPlayer === -1} disabled=${lyloBlunder} onClick=${this.selectPlayer} /><i>Nobody ${lyloBlunder}</i></label></li>
               </ol>
               <button type="submit" disabled=${selectedPlayer === -2}>Confirm Choice</button>
             </form>
@@ -373,7 +374,7 @@
           case phases.DAY:
             return html`
               <${Actions} actions=${state.actions} />
-              <${DayChoice} players=${state.players} choose=${this.confirmDayChoice} />
+              <${DayChoice} players=${state.players} preventBlunders=${state.preventBlunders} choose=${this.confirmDayChoice} />
             `;
           case phases.ENDGAME:
             return html`
