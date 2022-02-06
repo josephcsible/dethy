@@ -254,26 +254,31 @@
               name: "Player 1",
               role: roles.MAFIAGOON,
               alive: true,
+              investigations: [false, false, false, false, false],
             },
             {
               name: "Player 2",
               role: roles.SANECOP,
               alive: true,
+              investigations: [false, false, false, false, false],
             },
             {
               name: "Player 3",
               role: roles.INSANECOP,
               alive: true,
+              investigations: [false, false, false, false, false],
             },
             {
               name: "Player 4",
               role: roles.PARANOIDCOP,
               alive: true,
+              investigations: [false, false, false, false, false],
             },
             {
               name: "Player 5",
               role: roles.NAIVECOP,
               alive: true,
+              investigations: [false, false, false, false, false],
             },
           ],
           preventBlunders: true,
@@ -301,7 +306,8 @@
               players: prevState.players.map(({ name }, i) => ({
                 name,
                 role: shuffledRoles[i],
-                alive: true
+                alive: true,
+                investigations: [false, false, false, false, false],
               })),
               playerTurn: 0,
               dyingPlayer: -1,
@@ -323,13 +329,17 @@
               phase: phases.NIGHTRESULT,
             };
           } else {
-            const actions = [...prevState.actions];
+            const players = [...prevState.players], actions = [...prevState.actions];
             if(selectedPlayer !== -1) {
+              const investigations = [...players[prevState.playerTurn].investigations];
+              investigations[selectedPlayer] = true;
+              players[prevState.playerTurn] = {...players[prevState.playerTurn], investigations};
               actions.push({action: html`<span class="town">${prevState.players[prevState.playerTurn].name}</span> investigated <span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span>`, hidden: true});
             }
             return {
               investigatedPlayer: selectedPlayer,
               phase: phases.NIGHTRESULT,
+              players,
               actions
             };
           }
