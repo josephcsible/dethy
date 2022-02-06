@@ -394,6 +394,22 @@
           }
         }
 
+        onKeydown = event => {
+          if(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          if(event.key === 'Enter') {
+            event.preventDefault();
+            document.getElementsByTagName('button')[0].click();
+          }
+        }
+
+        componentDidMount() {
+          document.addEventListener('keydown', this.onKeydown);
+        }
+
+        componentWillUnmount() {
+          document.removeEventListener('keydown', this.onKeydown);
+        }
+
         render(props, state) {
           switch(state.phase) {
           case phases.NAMEENTRY:
