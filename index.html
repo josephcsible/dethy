@@ -106,6 +106,8 @@
             return html` <i>(You cannot choose dead players.)</i>`;
           } else if(this.props.day === 0 && this.props.players[this.props.playerTurn].role === roles.MAFIAGOON) {
             return html` <i>(The Mafia Goon may not kill on Night 0.)</i>`;
+          } else if(this.props.preventBlunders && this.props.players[this.props.playerTurn].investigations[i]) {
+            return html` <i>(Blunder: Reinvestigating a player is never useful)</i>`;
           } else {
             return null;
           }
