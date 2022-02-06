@@ -118,6 +118,28 @@
           }
         }
 
+        onKeyup = event => {
+          if(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          if(event.key === '6') {
+            event.preventDefault();
+            this.setState({ selectedPlayer: -1 });
+          } else if(event.key >= '1' && event.key <= '5') {
+            event.preventDefault();
+            const selectedPlayer = parseInt(event.key) - 1;
+            if(!this.playerDisabled(selectedPlayer)) {
+              this.setState({ selectedPlayer });
+            }
+          }
+        }
+
+        componentDidMount() {
+          document.addEventListener('keyup', this.onKeyup);
+        }
+
+        componentWillUnmount() {
+          document.removeEventListener('keyup', this.onKeyup);
+        }
+
         render({ players, day, playerTurn }, { selectedPlayer = -2 }) {
           const giveRole = day === 0 ? html`You are ${players[playerTurn].role === roles.MAFIAGOON ? html`the <span class="mafia">Mafia Goon</span>` : html`a <span class="town">Town Cop</span>`}.<br />` : null;
           return html`
@@ -162,6 +184,10 @@
           }
         }
 
+        lyloBlunder() {
+          return this.props.preventBlunders && this.props.players.filter(player => player.alive).length <= 3 && "(Blunder: The Mafia would immediately win)";
+        }
+
         choose = event => {
           event.preventDefault();
           if(this.state.selectedPlayer !== -2) {
@@ -169,8 +195,31 @@
           }
         }
 
-        render({ players, preventBlunders }, { selectedPlayer = -2 }) {
-          const lyloBlunder = preventBlunders && players.filter(player => player.alive).length <= 3 && "(Blunder: The Mafia would immediately win)";
+        onKeyup = event => {
+          if(event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+          if(event.key === '6') {
+            event.preventDefault();
+            if(!this.lyloBlunder()) {
+              this.setState({ selectedPlayer: -1 });
+            }
+          } else if(event.key >= '1' && event.key <= '5') {
+            event.preventDefault();
+            const selectedPlayer = parseInt(event.key) - 1;
+            if(!this.playerDisabled(selectedPlayer)) {
+              this.setState({ selectedPlayer });
+            }
+          }
+        }
+
+        componentDidMount() {
+          document.addEventListener('keyup', this.onKeyup);
+        }
+
+        componentWillUnmount() {
+          document.removeEventListener('keyup', this.onKeyup);
+        }
+
+        render({ players }, { selectedPlayer = -2 }) {
           return html`
             <form onSubmit=${this.choose}>
               Who did the Town vote to lynch?
@@ -182,7 +231,7 @@
                     ${this.playerDisabled(i)}
                   </label></li>
                 `)}
-                <li><label><input type="radio" name="nightchoice" value=-1 checked=${selectedPlayer === -1} disabled=${lyloBlunder} onClick=${this.selectPlayer} /><i>Nobody ${lyloBlunder}</i></label></li>
+                <li><label><input type="radio" name="nightchoice" value=-1 checked=${selectedPlayer === -1} disabled=${this.lyloBlunder()} onClick=${this.selectPlayer} /><i>Nobody ${this.lyloBlunder()}</i></label></li>
               </ol>
               <button type="submit" disabled=${selectedPlayer === -2}>Confirm Choice</button>
             </form>
