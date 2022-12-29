@@ -469,9 +469,11 @@
               <form onSubmit=${this.newGame}>
                 ${state.players.some(player => player.alive && player.role === roles.MAFIAGOON) ? html`<span class="mafia">Mafia Wins!</span>` : html`<span class="town">Town Wins!</span>`}<br />
                 Role List:
-                ${state.players.map((player, i) => html`
-                  <li key=${i} class=${player.role === roles.MAFIAGOON ? "mafia" : "town"}>${player.name} - ${player.role}</li>
-                `)}
+                <ul>
+                  ${state.players.map((player, i) => html`
+                    <li key=${i} class=${player.role === roles.MAFIAGOON ? "mafia" : "town"}>${player.name} - ${player.role}</li>
+                  `)}
+                </ul>
                 <button type="submit">New Game</button>
               </form>
             `;
