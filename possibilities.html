@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+  <!--
+    Dethy Mafia game possibilities generator
+    Copyright (C) 2026  Joseph C. Sible
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program.  If not, see <https://www.gnu.org/licenses/>.
+  -->
+  <head>
+    <title>Dethy Possibilities Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      :root {
+        color-scheme: light dark;
+      }
+    </style>
+    <script>
+      "use strict";
+      function recompute() {
+        let possibilities = [];
+        mafialoop: for(let mafiaplayer = 1; mafiaplayer <= 5; ++mafiaplayer) {
+          let possibility = {};
+          for(let j = 1; j <= 5; ++j) {
+            possibility[j] = [];
+            let jchoice = parseInt(document.getElementById("player" + j + "choice0").value);
+            let jresult = document.getElementById("player" + j + "result0").value;
+            if(jchoice == 0 || jresult == "" || (jchoice == mafiaplayer && jresult == "guilty") || (jchoice != mafiaplayer && jresult == "innocent")) possibility[j].push('sane');
+            if(jchoice == 0 || jresult == "" || (jchoice == mafiaplayer && jresult == "innocent") || (jchoice != mafiaplayer && jresult == "guilty")) possibility[j].push('insane');
+            if(jresult != "innocent") possibility[j].push('paranoid');
+            if(jresult != "guilty") possibility[j].push('naive');
+          }
+          possibility[mafiaplayer] = ['MAFIA'];
+          let changed;
+          do {
+            changed = false;
+            for(let sanity of ['sane', 'insane', 'paranoid', 'naive']) {
+              const whoCanBe = Object.entries(possibility).filter(([_, roles]) => roles.includes(sanity));
+              if(whoCanBe.length === 0) continue mafialoop;
+              if(whoCanBe.length === 1 && possibility[whoCanBe[0][0]].length !== 1) {
+                changed = true;
+                possibility[whoCanBe[0][0]] = [sanity];
+              }
+            }
+            for(let i = 1; i <= 5; ++i) {
+              if(possibility[i].length !== 2) continue;
+              for(let j = 1; j <= 5; ++j) {
+                if(i === j || possibility[j].length !== 2) continue;
+                if(possibility[i][0] === possibility[j][0] && possibility[i][1] === possibility[j][1]) {
+                  for(let k = 1; k <= 5; ++k) {
+                    if(i === k || j === k) continue;
+                    if(possibility[k].includes(possibility[i][0]) || possibility[k].includes(possibility[i][1])) {
+                      changed = true;
+                      possibility[k] = possibility[k].filter(sanity => sanity !== possibility[i][0] && sanity !== possibility[i][1]);
+                      if(possibility[k].length === 0) continue mafialoop;
+                    }
+                  }
+                }
+              }
+            }
+          } while(changed);
+          possibilities.push(possibility);
+        }
+        document.getElementById('output').innerText = possibilities.map(possibility => {
+          let rv = '';
+          for(let j = 1; j <= 5; ++j) {
+            rv = rv + document.getElementById("player" + j + "name").value + ' is ' + possibility[j].join('/') + '\n';
+          }
+          return rv;
+        }).join("\n")
+      }
+      function changename(nameinput) {
+        for(const el of document.getElementsByClassName(nameinput.id)) {
+          el.innerText = nameinput.value;
+          recompute();
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <input type="text" id="player1name" value="Player 1" onchange="changename(this)"> says
+    <select id="player1choice0" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player4name" value="4">Player 4</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player1result0" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <input type="text" id="player2name" value="Player 2" onchange="changename(this)"> says
+    <select id="player2choice0" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player4name" value="4">Player 4</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player2result0" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <input type="text" id="player3name" value="Player 3" onchange="changename(this)"> says
+    <select id="player3choice0" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player4name" value="4">Player 4</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player3result0" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <input type="text" id="player4name" value="Player 4" onchange="changename(this)"> says
+    <select id="player4choice0" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player4result0" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <input type="text" id="player5name" value="Player 5" onchange="changename(this)"> says
+    <select id="player5choice0" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player4name" value="4">Player 4</option>
+    </select> is
+    <select id="player5result0" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select>
+    <pre id="output" style="white-space: pre-wrap"></pre>
+  </body>
+</html>
