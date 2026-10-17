@@ -85,6 +85,7 @@
         NIGHTPLAYER: "nightplayer",
         NIGHTCHOICE: "nightchoice",
         NIGHTRESULT: "nightresult",
+        DAWN: "dawn",
         DAY: "day",
         ENDGAME: "endgame"
       };
@@ -117,7 +118,7 @@
         return guilty ? GUILTY : INNOCENT;
       }
 
-      function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, startGame }) {
+      function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
         return html`
           <form onSubmit=${startGame}>
             Enter player names:
@@ -127,6 +128,7 @@
               `)}
             </ol>
             <label><input type="checkbox" checked=${preventBlunders} onClick=${updatePreventBlunders} />Prevent blunders</label><br />
+            <label><input type="checkbox" checked=${useDawn} onClick=${updateUseDawn} />Record claims at dawn</label><br />
             <button type="submit">Start Game</button>
           </form>
         `;
@@ -301,6 +303,7 @@
 
       class Dethy extends Component {
         state = {
+          useDawn: false,
           phase: phases.NAMEENTRY,
           day: 0,
           players: [
@@ -349,6 +352,7 @@
         });
 
         updatePreventBlunders = event => this.setState({ preventBlunders: event.target.checked });
+        updateUseDawn = event => this.setState({ useDawn: event.target.checked });
 
         startGame = event => {
           event.preventDefault();
@@ -418,12 +422,17 @@
             }
             actions.push({action: html`Day ${day}`, hidden: false});
             return {
-              phase: phases.DAY,
+              phase: prevState.useDawn ? phases.DAWN : phases.DAY,
               day,
               players,
               actions
             }
           });
+        };
+
+        recordClaims = event => {
+          event.preventDefault();
+          this.setState({phase: phases.DAY});
         };
 
         confirmDayChoice = selectedPlayer => this.setState(prevState => {
@@ -484,7 +493,7 @@
           switch(state.phase) {
           case phases.NAMEENTRY:
             return html`
-              <${NameEntry} players=${state.players} updateNames=${this.updateNames} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} startGame=${this.startGame} />
+              <${NameEntry} players=${state.players} updateNames=${this.updateNames} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} useDawn=${state.useDawn} updateUseDawn=${this.updateUseDawn} startGame=${this.startGame} />
             `;
           case phases.NIGHTPLAYER:
             return html`
@@ -504,6 +513,14 @@
               <form onSubmit=${this.advanceNight}>
                 <${NightResult} players=${state.players} playerTurn=${state.playerTurn} investigatedPlayer=${state.investigatedPlayer} /><br />
                 <button type="submit">Continue</button>
+              </form>
+            `;
+          case phases.DAWN:
+            return html`
+              <${Actions} actions=${state.actions} />
+              <form onSubmit=${this.recordClaims}>
+                TODO - enter claims here<br />
+                <button type="submit">Record claims</button>
               </form>
             `;
           case phases.DAY:
