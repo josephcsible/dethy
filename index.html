@@ -167,6 +167,26 @@
         return goodVotes[Math.floor(Math.random() * goodVotes.length)];
       }
 
+      function getGoodTarget(players, claims, i) {
+        const goodTargets = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive && !claims.some(claim => claim.investigator === i && claim.target === j));
+        if(!goodTargets.length) return -1;
+        let threshold = 72;
+        for(let j = 0; j < 5; ++j) {
+          if(j === i || !players[j].alive || claims.some(claim => claim.investigator === i && claim.target === j)) continue;
+          const innocents = getWorlds(players, [...claims, {investigator: i, target: j, verdict: INNOCENT}]);
+          const guilties = getWorlds(players, [...claims, {investigator: i, target: j, verdict: GUILTY}]);
+          const worstCase = Math.max(innocents.length, guilties.length);
+          if(worstCase < threshold) {
+            threshold = worstCase;
+            goodTargets.length = 0;
+          }
+          if(worstCase === threshold) {
+            goodTargets.push(j);
+          }
+        }
+        return goodTargets[Math.floor(Math.random() * goodTargets.length)];
+      }
+
       function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
         return html`
           <form onSubmit=${startGame}>
