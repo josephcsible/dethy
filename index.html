@@ -118,6 +118,37 @@
         return guilty ? GUILTY : INNOCENT;
       }
 
+      // attribution: https://stackoverflow.com/a/20871714/7509065
+      function permutator(inputArr) {
+        let result = [];
+        const permute = (arr, m = []) => {
+          if (arr.length === 0) {
+            result.push(m)
+          } else {
+            for (let i = 0; i < arr.length; i++) {
+              let curr = arr.slice();
+              let next = curr.splice(i, 1);
+              permute(curr.slice(), m.concat(next))
+            }
+          }
+        }
+        permute(inputArr);
+        return result;
+      }
+
+      function getWorlds(players, claims) {
+        const worlds = permutator([roles.MAFIAGOON, roles.SANECOP, roles.INSANECOP, roles.PARANOIDCOP, roles.NAIVECOP]);
+        return worlds.filter(world => {
+          for(let i = 0; i < 5; ++i) {
+            if(world[i] === roles.MAFIAGOON && !players[i].alive) return false;
+          }
+          for(const claim of claims) {
+            if(world[claim.investigator] !== roles.MAFIAGOON && getInvestigationResult(world[claim.investigator], world[claim.target]) !== claim.verdict) return false;
+          }
+          return true;
+        });
+      }
+
       function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
         return html`
           <form onSubmit=${startGame}>
