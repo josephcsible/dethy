@@ -193,6 +193,13 @@
         return possibleKills[Math.floor(Math.random() * possibleKills.length)];
       }
 
+      function getGoodLie(players, claims, i, j) {
+        const innocents = getWorlds(players, [...claims, {investigator: i, target: j, verdict: INNOCENT}]).filter(world => world[i] !== roles.MAFIAGOON).length;
+        const guilties = getWorlds(players, [...claims, {investigator: i, target: j, verdict: GUILTY}]).filter(world => world[i] !== roles.MAFIAGOON).length;
+        const probability = innocents + guilties === 0 ? 0.5 : innocents / (innocents + guilties);
+        return Math.random() < probability ? INNOCENT : GUILTY;
+      }
+
       function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
         return html`
           <form onSubmit=${startGame}>
