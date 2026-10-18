@@ -242,7 +242,8 @@
 
         makeUpdateTarget = i => event => this.setState(prevState => {
           const claims = [...prevState.claims];
-          claims[i] = {...claims[i], target: event.target.value};
+          const target = event.target.value;
+          claims[i] = target === -1 ? {target, verdict: null} : {...claims[i], target};
           return {claims};
         });
 
@@ -262,8 +263,18 @@
           }
         }
 
+        submittable = () => this.state.claims.every(({ target, verdict }, investigator) => {
+          if(!this.props.players[investigator].alive) return true;
+          if(target === -1) {
+            return !this.props.preventBlunders;
+          } else {
+            return ['guilty', 'innocent'].includes(verdict);
+          }
+        });
+
         recordClaims = event => {
           event.preventDefault();
+          if(!this.submittable()) return;
           this.props.recordClaims(this.state.claims.flatMap(({ target, verdict }, investigator) => {
             if(this.props.players[investigator].alive && target !== -1) {
               if(verdict === "guilty") {
@@ -299,14 +310,14 @@
                         <option style="font-style:italic" value="-1">Nobody</option>
                       </select></td>
                       <td>
-                        <label><input type="radio" name="player${i}verdict" value="guilty" checked=${claims[i].verdict === "guilty"} onChange=${this.updateVerdicts[i]} /> ${GUILTY}</label><br />
-                        <label><input type="radio" name="player${i}verdict" value="innocent" checked=${claims[i].verdict === "innocent"} onChange=${this.updateVerdicts[i]} /> ${INNOCENT}</label>
+                        <label><input type="radio" name="player${i}verdict" value="guilty" disabled=${claims[i].target === -1} checked=${claims[i].verdict === "guilty"} onChange=${this.updateVerdicts[i]} /> ${GUILTY}</label><br />
+                        <label><input type="radio" name="player${i}verdict" value="innocent" disabled=${claims[i].target === -1} checked=${claims[i].verdict === "innocent"} onChange=${this.updateVerdicts[i]} /> ${INNOCENT}</label>
                       </td>
                     </tr>
                   `])}
                 </tbody>
               </table>
-              <button type="submit">Record claims</button>
+              <button type="submit" disabled=${!this.submittable()}>Record claims</button>
             </form>
           `;
         }
@@ -600,7 +611,7 @@
           case phases.DAWN:
             return html`
               <${Actions} actions=${state.actions} />
-              <${Dawn} players=${state.players} dyingPlayer=${state.dyingPlayer} recordClaims=${this.recordClaims} />
+              <${Dawn} players=${state.players} dyingPlayer=${state.dyingPlayer} preventBlunders=${state.preventBlunders} recordClaims=${this.recordClaims} />
             `;
           case phases.DAY:
             return html`
