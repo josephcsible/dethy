@@ -98,6 +98,11 @@
         NAIVECOP: "Town Naïve Cop"
       };
 
+      const controls = {
+        HUMAN: "Human",
+        COMPUTER: "Computer"
+      };
+
       const GUILTY = html`<span class="mafia">Guilty</span>`;
       const INNOCENT = html`<span class="town">Innocent</span>`;
 
@@ -200,17 +205,21 @@
         return Math.random() < probability ? INNOCENT : GUILTY;
       }
 
-      function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
+      function NameEntry({ players, updateNames, updateControls, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
         return html`
           <form onSubmit=${startGame}>
             Enter player names:
             <ol>
               ${players.map((player, i) => html`
-                <li key=${i}><input type="text" value=${player.name} onInput=${updateNames[i]} /></li>
+                <li key=${i}>
+                  <input type="text" value=${player.name} onInput=${updateNames[i]} />
+                  <label><input type="radio" name="player${i}control" value=${controls.HUMAN} disabled=${!useDawn} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
+                  <label><input type="radio" name="player${i}control" value=${controls.COMPUTER} disabled=${!useDawn} checked=${player.control === controls.COMPUTER} onChange=${updateControls[i]} />${controls.COMPUTER}</label>
+                </li>
               `)}
             </ol>
             <label><input type="checkbox" checked=${preventBlunders} onClick=${updatePreventBlunders} />Prevent blunders</label><br />
-            <label><input type="checkbox" checked=${useDawn} onClick=${updateUseDawn} />Record claims at dawn</label><br />
+            <label><input type="checkbox" checked=${useDawn} onClick=${updateUseDawn} disabled=${players.some(player => player.control !== controls.HUMAN)} />Record claims at dawn</label><br />
             <button type="submit">Start Game</button>
           </form>
         `;
@@ -479,30 +488,35 @@
           players: [
             {
               name: "Player 1",
+              control: controls.HUMAN,
               role: roles.MAFIAGOON,
               alive: true,
               investigations: [null, null, null, null, null],
             },
             {
               name: "Player 2",
+              control: controls.HUMAN,
               role: roles.SANECOP,
               alive: true,
               investigations: [null, null, null, null, null],
             },
             {
               name: "Player 3",
+              control: controls.HUMAN,
               role: roles.INSANECOP,
               alive: true,
               investigations: [null, null, null, null, null],
             },
             {
               name: "Player 4",
+              control: controls.HUMAN,
               role: roles.PARANOIDCOP,
               alive: true,
               investigations: [null, null, null, null, null],
             },
             {
               name: "Player 5",
+              control: controls.HUMAN,
               role: roles.NAIVECOP,
               alive: true,
               investigations: [null, null, null, null, null],
@@ -519,6 +533,12 @@
         makeUpdateName = i => ({ target: { value: name } }) => this.setState(prevState => {
           const players = [...prevState.players];
           players[i] = {...players[i], name};
+          return {players};
+        });
+
+        makeUpdateControl = i => ({ target: { value: control } }) => this.setState(prevState => {
+          const players = [...prevState.players];
+          players[i] = {...players[i], control};
           return {players};
         });
 
@@ -643,8 +663,10 @@
         constructor(props) {
           super(props);
           this.updateNames = [];
+          this.updateControls = [];
           for(let i = 0; i < 5; ++i) {
             this.updateNames[i] = this.makeUpdateName(i);
+            this.updateControls[i] = this.makeUpdateControl(i);
           }
         }
 
@@ -668,7 +690,7 @@
           switch(state.phase) {
           case phases.NAMEENTRY:
             return html`
-              <${NameEntry} players=${state.players} updateNames=${this.updateNames} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} useDawn=${state.useDawn} updateUseDawn=${this.updateUseDawn} startGame=${this.startGame} />
+              <${NameEntry} players=${state.players} updateNames=${this.updateNames} updateControls=${this.updateControls} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} useDawn=${state.useDawn} updateUseDawn=${this.updateUseDawn} startGame=${this.startGame} />
             `;
           case phases.NIGHTPLAYER:
             return html`
