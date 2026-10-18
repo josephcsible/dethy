@@ -236,12 +236,47 @@
       }
 
       class Dawn extends Component {
-        recordClaims = event => {
-          event.preventDefault();
-          this.props.recordClaims([]);
+        state = {
+          claims: [{target: -1, verdict: null}, {target: -1, verdict: null}, {target: -1, verdict: null}, {target: -1, verdict: null}, {target: -1, verdict: null}],
+        };
+
+        makeUpdateTarget = i => event => this.setState(prevState => {
+          const claims = [...prevState.claims];
+          claims[i] = {...claims[i], target: event.target.value};
+          return {claims};
+        });
+
+        makeUpdateVerdict = i => event => this.setState(prevState => {
+          const claims = [...prevState.claims];
+          claims[i] = {...claims[i], verdict: event.target.value};
+          return {claims};
+        });
+
+        constructor(props) {
+          super(props);
+          this.updateTargets = [];
+          this.updateVerdicts = [];
+          for(let i = 0; i < 5; ++i) {
+            this.updateTargets[i] = this.makeUpdateTarget(i);
+            this.updateVerdicts[i] = this.makeUpdateVerdict(i);
+          }
         }
 
-        render({ players, dyingPlayer }, state) {
+        recordClaims = event => {
+          event.preventDefault();
+          this.props.recordClaims(this.state.claims.flatMap(({ target, verdict }, investigator) => {
+            if(this.props.players[investigator].alive && target !== -1) {
+              if(verdict === "guilty") {
+                return [{ investigator, target, verdict: GUILTY }];
+              } else if(verdict === "innocent") {
+                return [{ investigator, target, verdict: INNOCENT }];
+              }
+            }
+            return [];
+          }));
+        }
+
+        render({ players, dyingPlayer }, { claims }) {
           return html`
             <form onSubmit=${this.recordClaims}>
               Claim last night's results:
@@ -257,15 +292,15 @@
                   ${players.flatMap((investigator, i) => !investigator.alive ? [] : [html`
                     <tr key=${i}>
                       <td>${investigator.name}</td>
-                      <td><select name="player${i}target">
+                      <td><select value=${claims[i].target} onChange=${this.updateTargets[i]}>
                         ${players.flatMap((target, t) => t === i || (t !== dyingPlayer && !target.alive) ? [] : [html`
                           <option value=${t}>${target.name}</option>
                         `])}
-                        <option style="font-style:italic" value="-1" selected>Nobody</option>
+                        <option style="font-style:italic" value="-1">Nobody</option>
                       </select></td>
                       <td>
-                        <label><input type="radio" name="player${i}verdict" value="Guilty" /> ${GUILTY}</label><br />
-                        <label><input type="radio" name="player${i}verdict" value="Innocent" /> ${INNOCENT}</label>
+                        <label><input type="radio" name="player${i}verdict" value="guilty" checked=${claims[i].verdict === "guilty"} onChange=${this.updateVerdicts[i]} /> ${GUILTY}</label><br />
+                        <label><input type="radio" name="player${i}verdict" value="innocent" checked=${claims[i].verdict === "innocent"} onChange=${this.updateVerdicts[i]} /> ${INNOCENT}</label>
                       </td>
                     </tr>
                   `])}
@@ -474,7 +509,13 @@
           });
         };
 
-        recordClaims = claims => this.setState(prevState => ({ phase: phases.DAY, claims: [...prevState.claims, ...claims] }));
+        recordClaims = claims => this.setState(prevState => {
+          const actions = [...prevState.actions];
+          for(const claim of claims) {
+            actions.push({action: html`${prevState.players[claim.investigator].name} claimed ${prevState.players[claim.target].name} was ${claim.verdict}`, hidden: false});
+          }
+          return { phase: phases.DAY, claims: [...prevState.claims, ...claims], actions };
+        });
 
         confirmDayChoice = selectedPlayer => this.setState(prevState => {
           const players = [...prevState.players], actions = [...prevState.actions];
