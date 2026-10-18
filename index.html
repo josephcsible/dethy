@@ -149,6 +149,24 @@
         });
       }
 
+      function getGoodVote(players, claims, i) {
+        const worlds = getWorlds(players, claims);
+        const goodVotes = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive); // if no worlds remain where we're not the Mafia, then just vote for another random living player
+        let threshold = 0;
+        for(let j = 0; j < 5; ++j) {
+          if(j === i) continue;
+          const n = worlds.filter(world => world[j] === roles.MAFIAGOON).length;
+          if(n > threshold) {
+            threshold = n;
+            goodVotes.length = 0;
+          }
+          if(n === threshold) {
+            goodVotes.push(j);
+          }
+        }
+        return goodVotes[Math.floor(Math.random() * goodVotes.length)];
+      }
+
       function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
         return html`
           <form onSubmit=${startGame}>
