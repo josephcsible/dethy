@@ -291,7 +291,7 @@
 
         makeUpdateTarget = i => event => this.setState(prevState => {
           const claims = [...prevState.claims];
-          const target = event.target.value;
+          const target = parseInt(event.target.value);
           claims[i] = target === -1 ? {target, verdict: null} : {...claims[i], target};
           return {claims};
         });
