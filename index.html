@@ -235,6 +235,48 @@
         }
       }
 
+      class Dawn extends Component {
+        recordClaims = event => {
+          event.preventDefault();
+          this.props.recordClaims([]);
+        }
+
+        render({ players, dyingPlayer }, state) {
+          return html`
+            <form onSubmit=${this.recordClaims}>
+              Claim last night's results:
+              <table border=1>
+                <thead>
+                  <tr>
+                    <th>Investigator</th>
+                    <th>Target</th>
+                    <th>Verdict</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${players.flatMap((investigator, i) => !investigator.alive ? [] : [html`
+                    <tr key=${i}>
+                      <td>${investigator.name}</td>
+                      <td><select name="player${i}target">
+                        ${players.flatMap((target, t) => t === i || (t !== dyingPlayer && !target.alive) ? [] : [html`
+                          <option value=${t}>${target.name}</option>
+                        `])}
+                        <option style="font-style:italic" value="-1" selected>Nobody</option>
+                      </select></td>
+                      <td>
+                        <label><input type="radio" name="player${i}verdict" value="Guilty" /> ${GUILTY}</label><br />
+                        <label><input type="radio" name="player${i}verdict" value="Innocent" /> ${INNOCENT}</label>
+                      </td>
+                    </tr>
+                  `])}
+                </tbody>
+              </table>
+              <button type="submit">Record claims</button>
+            </form>
+          `;
+        }
+      }
+
       class DayChoice extends Component {
         selectPlayer = ({ target: { value } }) => this.setState({ selectedPlayer: parseInt(value) });
 
@@ -338,6 +380,7 @@
               investigations: [null, null, null, null, null],
             },
           ],
+          claims: [],
           preventBlunders: true,
           playerTurn: 0,
           dyingPlayer: -1,
@@ -367,6 +410,7 @@
                 alive: true,
                 investigations: [null, null, null, null, null],
               })),
+              claims: [],
               playerTurn: 0,
               dyingPlayer: -1,
               investigatedPlayer: -1,
@@ -430,10 +474,7 @@
           });
         };
 
-        recordClaims = event => {
-          event.preventDefault();
-          this.setState({phase: phases.DAY});
-        };
+        recordClaims = claims => this.setState(prevState => ({ phase: phases.DAY, claims: [...prevState.claims, ...claims] }));
 
         confirmDayChoice = selectedPlayer => this.setState(prevState => {
           const players = [...prevState.players], actions = [...prevState.actions];
@@ -518,10 +559,7 @@
           case phases.DAWN:
             return html`
               <${Actions} actions=${state.actions} />
-              <form onSubmit=${this.recordClaims}>
-                TODO - enter claims here<br />
-                <button type="submit">Record claims</button>
-              </form>
+              <${Dawn} players=${state.players} dyingPlayer=${state.dyingPlayer} recordClaims=${this.recordClaims} />
             `;
           case phases.DAY:
             return html`
