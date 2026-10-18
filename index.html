@@ -187,6 +187,12 @@
         return goodTargets[Math.floor(Math.random() * goodTargets.length)];
       }
 
+      function getGoodKill(players, claims, i) {
+        const possibleKills = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive);
+        // TODO pick better than randomly
+        return possibleKills[Math.floor(Math.random() * possibleKills.length)];
+      }
+
       function NameEntry({ players, updateNames, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
         return html`
           <form onSubmit=${startGame}>
