@@ -642,7 +642,9 @@
               const investigations = [...players[prevState.playerTurn].investigations];
               investigations[selectedPlayer] = getInvestigationResult(players[prevState.playerTurn].role, players[selectedPlayer].role);
               players[prevState.playerTurn] = {...players[prevState.playerTurn], investigations};
-              actions.push({action: html`<span class="town">${prevState.players[prevState.playerTurn].name}</span> investigated <span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span>`, hidden: true});
+              if(!prevState.useDawn) {
+                actions.push({action: html`<span class="town">${prevState.players[prevState.playerTurn].name}</span> investigated <span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span>`, hidden: true});
+              }
             }
             return {
               investigatedPlayer: selectedPlayer,
