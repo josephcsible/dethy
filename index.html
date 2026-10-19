@@ -629,7 +629,7 @@
               playerTurn: prevState.players.findIndex(player => player.control === controls.HUMAN),
               dyingPlayer: -1,
               investigatedPlayer: -1,
-              actions: [{action: html`Night 0`, hidden: true}]
+              actions: prevState.useDawn ? [] : [{action: html`Night 0`, hidden: true}]
             };
           });
         };
