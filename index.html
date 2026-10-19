@@ -159,10 +159,15 @@
       function getGoodVote(players, claims, i, random = Math.random()) {
         const worlds = getWorlds(players, claims);
         const goodVotes = [];
+        const alive = players.filter(player => player.alive).length;
+        let suspicious = 0;
         let threshold = 0;
         for(let j = 0; j < 5; ++j) {
           if(j === i || !players[j].alive) continue;
           const n = worlds.filter(world => world[j] === roles.MAFIAGOON).length;
+          if(n > 0) {
+            ++suspicious;
+          }
           if(n > threshold) {
             threshold = n;
             goodVotes.length = 0;
@@ -171,6 +176,7 @@
             goodVotes.push(j);
           }
         }
+        if(alive % 2 === 0 && suspicious > 1) return -1;
         return goodVotes[Math.floor(random * goodVotes.length)];
       }
 
@@ -469,13 +475,11 @@
           }
           return html`
             Computer players are voting as follows:
-            <ul>
-              ${players.map((player, i) => !player.alive || player.control === controls.HUMAN ? null : html`
-                <li key=${i}>
-                  ${player.name} votes for ${players[getGoodVote(players, claims, i, randoms[i])].name}
-                </li>
-              `)}
-            </ul>
+            <ul>${players.map((player, i) => {
+              if(!player.alive || player.control === controls.HUMAN) return null;
+              const goodVote = getGoodVote(players, claims, i, randoms[i]);
+              return html`<li key=${i}>${player.name} votes for ${goodVote === -1 ? html`<i>Nobody</i>` : players[goodVote].name}</li>`;
+            })}</ul>
           `;
         }
       }
