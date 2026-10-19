@@ -441,7 +441,7 @@
           return html`
             Computer players are voting as follows:
             <ul>
-              ${players.map((player, i) => player.control === controls.HUMAN ? null : html`
+              ${players.map((player, i) => !player.alive || player.control === controls.HUMAN ? null : html`
                 <li key=${i}>
                   ${player.name} votes for ${players[getGoodVote(players, claims, i, randoms[i])].name}
                 </li>
