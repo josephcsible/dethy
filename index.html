@@ -633,17 +633,25 @@
                 };
               }
             }
+            let dyingPlayer = prevState.dyingPlayer;
+            if(prevState.day !== 0) {
+              const mafia = prevState.players.findIndex(player => player.role === roles.MAFIAGOON);
+              if(prevState.players[mafia].control !== controls.HUMAN) {
+                dyingPlayer = getGoodKill(prevState.players, prevState.claims, mafia);
+              }
+            }
             const day = prevState.day + 1;
             const players = [...prevState.players], actions = [...prevState.actions];
-            if(prevState.dyingPlayer !== -1) {
-              players[prevState.dyingPlayer] = {...players[prevState.dyingPlayer], alive: false};
-              actions.push({action: html`<span class="town">${players[prevState.dyingPlayer].name}</span> was killed`, hidden: false});
+            if(dyingPlayer !== -1) {
+              players[dyingPlayer] = {...players[dyingPlayer], alive: false};
+              actions.push({action: html`<span class="town">${players[dyingPlayer].name}</span> was killed`, hidden: false});
             }
             actions.push({action: html`Day ${day}`, hidden: false});
             return {
               phase: prevState.useDawn ? phases.DAWN : phases.DAY,
               day,
               players,
+              dyingPlayer,
               actions
             }
           });
