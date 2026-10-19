@@ -387,7 +387,7 @@
         }
 
         submittable = () => this.state.claims.every(({ target, verdict }, investigator) => {
-          if(!this.props.players[investigator].alive) return true;
+          if(!this.props.players[investigator].alive || this.props.players[i].control !== controls.HUMAN) return true;
           if(target === -1) {
             return !this.props.preventBlunders;
           } else {
