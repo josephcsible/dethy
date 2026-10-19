@@ -414,6 +414,31 @@
         }
       }
 
+      class ComputerVotes extends Component {
+        constructor(props) {
+          super(props);
+          this.state = {
+            randoms: [Math.random(), Math.random(), Math.random(), Math.random(), Math.random()]
+          };
+        }
+
+        render({ players, claims }, { randoms }) {
+          if(players.every(player => player.control === controls.HUMAN)) {
+            return null;
+          }
+          return html`
+            Computer players are voting as follows:
+            <ul>
+              ${players.map((player, i) => player.control === controls.HUMAN ? null : html`
+                <li key=${i}>
+                  ${player.name} votes for ${players[getGoodVote(players, claims, i, randoms[i])].name}
+                </li>
+              `)}
+            </ul>
+          `;
+        }
+      }
+
       class DayChoice extends Component {
         selectPlayer = ({ target: { value } }) => this.setState({ selectedPlayer: parseInt(value) });
 
@@ -721,6 +746,7 @@
           case phases.DAY:
             return html`
               <${Actions} actions=${state.actions} />
+              <${ComputerVotes} players=${state.players} claims=${state.claims} />
               <${DayChoice} players=${state.players} preventBlunders=${state.preventBlunders} choose=${this.confirmDayChoice} />
             `;
           case phases.ENDGAME:
