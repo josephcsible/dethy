@@ -100,7 +100,9 @@
 
       const controls = {
         HUMAN: "Human",
-        COMPUTER: "Computer"
+        EASY: "Easy",
+        MEDIUM: "Medium",
+        HARD: "Hard"
       };
 
       const GUILTY = html`<span class="mafia">Guilty</span>`;
@@ -232,7 +234,9 @@
                 <li key=${i}>
                   <input type="text" value=${player.name} onInput=${updateNames[i]} />
                   <label><input type="radio" name="player${i}control" value=${controls.HUMAN} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
-                  <label><input type="radio" name="player${i}control" value=${controls.COMPUTER} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.COMPUTER} onChange=${updateControls[i]} />${controls.COMPUTER}</label>
+                  <label><input type="radio" name="player${i}control" value=${controls.EASY} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.EASY} onChange=${updateControls[i]} />${controls.EASY}</label>
+                  <label><input type="radio" name="player${i}control" value=${controls.MEDIUM} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.MEDIUM} onChange=${updateControls[i]} />${controls.MEDIUM}</label>
+                  <label><input type="radio" name="player${i}control" value=${controls.HARD} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.HARD} onChange=${updateControls[i]} />${controls.HARD}</label>
                 </li>
               `)}
             </ol>
