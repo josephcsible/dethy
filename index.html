@@ -194,7 +194,24 @@
 
       function getGoodKill(players, claims, i) {
         const possibleKills = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive);
-        // TODO pick better than randomly
+        const worlds = getWorlds(players, claims);
+        const goodKills = [];
+        for(const j of possibleKills) {
+          if(worlds.every(world => [roles.SANECOP, roles.INSANECOP].includes(world[j]))) {
+            goodKills.push(j);
+          }
+        }
+        if(goodKills.length) {
+          return goodKills[Math.floor(Math.random() * goodKills.length)];
+        }
+        for(const j of possibleKills) {
+          if(worlds.every(world => world[j] !== roles.MAFIAGOON)) {
+            goodKills.push(j);
+          }
+        }
+        if(goodKills.length) {
+          return goodKills[Math.floor(Math.random() * goodKills.length)];
+        }
         return possibleKills[Math.floor(Math.random() * possibleKills.length)];
       }
 
