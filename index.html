@@ -158,10 +158,10 @@
 
       function getGoodVote(players, claims, i, random = Math.random()) {
         const worlds = getWorlds(players, claims);
-        const goodVotes = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive); // if no worlds remain where we're not the Mafia, then just vote for another random living player
+        const goodVotes = [];
         let threshold = 0;
         for(let j = 0; j < 5; ++j) {
-          if(j === i) continue;
+          if(j === i || !players[j].alive) continue;
           const n = worlds.filter(world => world[j] === roles.MAFIAGOON).length;
           if(n > threshold) {
             threshold = n;
