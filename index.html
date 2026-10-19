@@ -464,7 +464,7 @@
         }
 
         render({ players, claims }, { randoms }) {
-          if(players.every(player => player.control === controls.HUMAN)) {
+          if(players.every(player => !player.alive || player.control === controls.HUMAN)) {
             return null;
           }
           return html`
