@@ -423,7 +423,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${players.flatMap((investigator, i) => !investigator.alive ? [] : [html`
+                  ${players.flatMap((investigator, i) => !investigator.alive || investigator.control !== controls.HUMAN ? [] : [html`
                     <tr key=${i}>
                       <td>${investigator.name}</td>
                       <td><select value=${claims[i].target} onChange=${this.updateTargets[i]}>
