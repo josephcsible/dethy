@@ -360,7 +360,10 @@
             } else {
               const target = getGoodTarget(yesterdaysPlayers, props.claims, i);
               const role = props.players[i].role;
-              claims[i] = {target, verdict: target === -1 ? null : role === roles.MAFIAGOON ? getGoodLie(props.players, props.claims, i, target) : getInvestigationResult(role, props.players[target].role) === GUILTY ? 'guilty' : 'innocent'};
+              let verdict = target === -1 ? null : role === roles.MAFIAGOON ? getGoodLie(props.players, props.claims, i, target) : getInvestigationResult(role, props.players[target].role);
+              if(verdict === GUILTY) verdict = 'guilty';
+              else if(verdict === INNOCENT) verdict = 'innocent';
+              claims[i] = {target, verdict};
             }
           }
           this.state = { claims };
