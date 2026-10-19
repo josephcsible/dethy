@@ -349,10 +349,21 @@
           super(props);
           this.updateTargets = [];
           this.updateVerdicts = [];
+          const yesterdaysPlayers = [...props.players];
+          yesterdaysPlayers[props.dyingPlayer] = {...yesterdaysPlayers[props.dyingPlayer], alive: true};
+          const claims = [];
           for(let i = 0; i < 5; ++i) {
             this.updateTargets[i] = this.makeUpdateTarget(i);
             this.updateVerdicts[i] = this.makeUpdateVerdict(i);
+            if(!props.players[i].alive || props.players[i].control === controls.HUMAN) {
+              claims[i] = {target: -1, verdict: null};
+            } else {
+              const target = getGoodTarget(yesterdaysPlayers, props.claims, i);
+              const role = props.players[i].role;
+              claims[i] = {target, verdict: target === -1 ? null : role === roles.MAFIAGOON ? getGoodLie(props.players, props.claims, i, target) : getInvestigationResult(role, props.players[target].role) === GUILTY ? 'guilty' : 'innocent'};
+            }
           }
+          this.state = { claims };
         }
 
         submittable = () => this.state.claims.every(({ target, verdict }, investigator) => {
@@ -749,7 +760,7 @@
           case phases.DAWN:
             return html`
               <${Actions} actions=${state.actions} />
-              <${Dawn} players=${state.players} dyingPlayer=${state.dyingPlayer} preventBlunders=${state.preventBlunders} recordClaims=${this.recordClaims} />
+              <${Dawn} players=${state.players} claims=${state.claims} dyingPlayer=${state.dyingPlayer} preventBlunders=${state.preventBlunders} recordClaims=${this.recordClaims} />
             `;
           case phases.DAY:
             return html`
