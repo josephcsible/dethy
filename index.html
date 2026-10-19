@@ -552,8 +552,9 @@
             return {
               phase: phases.NIGHTPLAYER,
               day: 0,
-              players: prevState.players.map(({ name }, i) => ({
+              players: prevState.players.map(({ name, control }, i) => ({
                 name,
+                control,
                 role: shuffledRoles[i],
                 alive: true,
                 investigations: [null, null, null, null, null],
