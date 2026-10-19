@@ -427,18 +427,18 @@
                   </tr>
                 </thead>
                 <tbody>
-                  ${players.flatMap((investigator, i) => !investigator.alive || investigator.control !== controls.HUMAN ? [] : [html`
+                  ${players.flatMap((investigator, i) => !investigator.alive || ![controls.HUMAN, controls.EASY].includes(investigator.control) ? [] : [html`
                     <tr key=${i}>
                       <td>${investigator.name}</td>
-                      <td><select value=${claims[i].target} onChange=${this.updateTargets[i]}>
+                      <td><select disabled=${investigator.control !== controls.HUMAN} value=${claims[i].target} onChange=${this.updateTargets[i]}>
                         ${players.flatMap((target, t) => t === i || (t !== dyingPlayer && !target.alive) ? [] : [html`
                           <option value=${t}>${target.name}</option>
                         `])}
                         <option style="font-style:italic" value="-1">Nobody</option>
                       </select></td>
                       <td>
-                        <label><input type="radio" name="player${i}verdict" value="guilty" disabled=${claims[i].target === -1} checked=${claims[i].verdict === "guilty"} onChange=${this.updateVerdicts[i]} /> ${GUILTY}</label><br />
-                        <label><input type="radio" name="player${i}verdict" value="innocent" disabled=${claims[i].target === -1} checked=${claims[i].verdict === "innocent"} onChange=${this.updateVerdicts[i]} /> ${INNOCENT}</label>
+                        <label><input type="radio" name="player${i}verdict" value="guilty" disabled=${investigator.control !== controls.HUMAN || claims[i].target === -1} checked=${claims[i].verdict === "guilty"} onChange=${this.updateVerdicts[i]} /> ${GUILTY}</label><br />
+                        <label><input type="radio" name="player${i}verdict" value="innocent" disabled=${investigator.control !== controls.HUMAN || claims[i].target === -1} checked=${claims[i].verdict === "innocent"} onChange=${this.updateVerdicts[i]} /> ${INNOCENT}</label>
                       </td>
                     </tr>
                   `])}
