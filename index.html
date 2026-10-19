@@ -233,10 +233,10 @@
               ${players.map((player, i) => html`
                 <li key=${i}>
                   <input type="text" value=${player.name} onInput=${updateNames[i]} />
-                  <label><input type="radio" name="player${i}control" value=${controls.HUMAN} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
-                  <label><input type="radio" name="player${i}control" value=${controls.EASY} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.EASY} onChange=${updateControls[i]} />${controls.EASY}</label>
-                  <label><input type="radio" name="player${i}control" value=${controls.MEDIUM} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.MEDIUM} onChange=${updateControls[i]} />${controls.MEDIUM}</label>
-                  <label><input type="radio" name="player${i}control" value=${controls.HARD} disabled=${!useDawn || (player.control === controls.HUMAN && nonhumanPlayers > 1)} checked=${player.control === controls.HARD} onChange=${updateControls[i]} />${controls.HARD}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HUMAN} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.EASY} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.EASY} onChange=${updateControls[i]} />${controls.EASY}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.MEDIUM} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.MEDIUM} onChange=${updateControls[i]} />${controls.MEDIUM}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HARD} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.HARD} onChange=${updateControls[i]} />${controls.HARD}</label>
                 </li>
               `)}
             </ol>
