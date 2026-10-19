@@ -586,7 +586,7 @@
                 investigations: [null, null, null, null, null],
               })),
               claims: [],
-              playerTurn: 0,
+              playerTurn: prevState.players.findIndex(player => player.control === controls.HUMAN),
               dyingPlayer: -1,
               investigatedPlayer: -1,
               actions: [{action: html`Night 0`, hidden: true}]
@@ -626,7 +626,7 @@
           event.preventDefault();
           this.setState(prevState => {
             for(let i = prevState.playerTurn + 1; i < 5; ++i) {
-              if(prevState.players[i].alive) {
+              if(prevState.players[i].alive && prevState.players[i].control === controls.HUMAN) {
                 return {
                   phase: phases.NIGHTPLAYER,
                   playerTurn: i
@@ -670,8 +670,7 @@
               actions
             };
           } else {
-            let playerTurn = -1;
-            while(!players[++playerTurn].alive);
+            const playerTurn = players.findIndex(player => player.alive && player.control === controls.HUMAN);
             actions.push({action: html`Night ${prevState.day}`, hidden: false});
             return {
               phase: phases.NIGHTPLAYER,
