@@ -399,19 +399,28 @@
           }
         });
 
+        convertClaims = (players, claims) => claims.flatMap(({ target, verdict }, investigator) => {
+          if(players[investigator].alive && target !== -1) {
+            if(verdict === "guilty") {
+              return [{ investigator, target, verdict: GUILTY }];
+            } else if(verdict === "innocent") {
+              return [{ investigator, target, verdict: INNOCENT }];
+            }
+          }
+          return [];
+        });
+
         recordClaims = event => {
           event.preventDefault();
           if(!this.submittable()) return;
-          this.props.recordClaims(this.state.claims.flatMap(({ target, verdict }, investigator) => {
-            if(this.props.players[investigator].alive && target !== -1) {
-              if(verdict === "guilty") {
-                return [{ investigator, target, verdict: GUILTY }];
-              } else if(verdict === "innocent") {
-                return [{ investigator, target, verdict: INNOCENT }];
-              }
-            }
-            return [];
-          }));
+          const claims = [...this.state.claims];
+          const mafia = this.props.players.findIndex(player => player.role === roles.MAFIAGOON);
+          if(this.props.players[mafia].control === controls.HARD) {
+            const target = claims[mafia].target;
+            claims[mafia] = {target: -1, verdict: null};
+            claims[mafia] = {target, verdict: getGoodLie(this.props.players, [...this.props.claims, ...this.convertClaims(this.props.players, claims)], mafia, target) === GUILTY ? 'guilty' : 'innocent'};
+          }
+          this.props.recordClaims(this.convertClaims(this.props.players, claims));
         }
 
         render({ players, dyingPlayer }, { claims }) {
