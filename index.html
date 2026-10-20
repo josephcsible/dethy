@@ -181,11 +181,11 @@
       }
 
       function getGoodTarget(players, claims, i) {
-        const goodTargets = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive && !claims.some(claim => claim.investigator === i && claim.target === j));
-        if(!goodTargets.length) return -1;
+        const possibleTargets = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive && !claims.some(claim => claim.investigator === i && claim.target === j));
+        if(!possibleTargets.length) return -1;
+        const goodTargets = [];
         let threshold = 72;
-        for(let j = 0; j < 5; ++j) {
-          if(j === i || !players[j].alive || claims.some(claim => claim.investigator === i && claim.target === j)) continue;
+        for(const j of possibleTargets) {
           const innocents = getWorlds(players, [...claims, {investigator: i, target: j, verdict: INNOCENT}]);
           const guilties = getWorlds(players, [...claims, {investigator: i, target: j, verdict: GUILTY}]);
           const worstCase = Math.max(innocents.length, guilties.length);
