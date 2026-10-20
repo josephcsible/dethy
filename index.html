@@ -180,21 +180,39 @@
         return goodVotes[Math.floor(random * goodVotes.length)];
       }
 
+      function getClearedPlayers(worlds) {
+        let clearedPlayers = 0;
+        for(let i = 0; i < 5; ++i) {
+          if(worlds.every(world => world[i] !== roles.MAFIAGOON)) {
+            ++clearedPlayers;
+          }
+        }
+        return clearedPlayers;
+      }
+
       function getGoodTarget(players, claims, i) {
         const possibleTargets = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive && !claims.some(claim => claim.investigator === i && claim.target === j));
         if(!possibleTargets.length) return -1;
         const goodTargets = [];
-        let threshold = 72;
+        let clearedThreshold = 0, worldsThreshold = 72;
         for(const j of possibleTargets) {
           const innocents = getWorlds(players, [...claims, {investigator: i, target: j, verdict: INNOCENT}]);
           const guilties = getWorlds(players, [...claims, {investigator: i, target: j, verdict: GUILTY}]);
-          const worstCase = Math.max(innocents.length, guilties.length);
-          if(worstCase < threshold) {
-            threshold = worstCase;
+          const worstCaseCleared = Math.min(getClearedPlayers(innocents), getClearedPlayers(guilties));
+          const worstCaseWorlds = Math.max(innocents.length, guilties.length);
+          if(worstCaseCleared > clearedThreshold) {
+            clearedThreshold = worstCaseCleared;
+            worldsThreshold = worstCaseWorlds;
             goodTargets.length = 0;
           }
-          if(worstCase === threshold) {
-            goodTargets.push(j);
+          if(worstCaseCleared === clearedThreshold) {
+            if(worstCaseWorlds < worldsThreshold) {
+              worldsThreshold = worstCaseWorlds;
+              goodTargets.length = 0;
+            }
+            if(worstCaseWorlds === worldsThreshold) {
+              goodTargets.push(j);
+            }
           }
         }
         return goodTargets[Math.floor(Math.random() * goodTargets.length)];
