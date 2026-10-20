@@ -213,6 +213,14 @@
           return goodKills[Math.floor(Math.random() * goodKills.length)];
         }
         for(const j of possibleKills) {
+          if(worlds.every(world => world[j] !== roles.MAFIAGOON) && worlds.some(world => [roles.SANECOP, roles.INSANECOP].includes(world[j]))) {
+            goodKills.push(j);
+          }
+        }
+        if(goodKills.length) {
+          return goodKills[Math.floor(Math.random() * goodKills.length)];
+        }
+        for(const j of possibleKills) {
           if(worlds.every(world => world[j] !== roles.MAFIAGOON)) {
             goodKills.push(j);
           }
