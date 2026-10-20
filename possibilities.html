@@ -30,6 +30,9 @@
       function recomputeOutput(whichOutput) {
         let possibilities = [];
         mafialoop: for(let mafiaplayer = 1; mafiaplayer <= 5; ++mafiaplayer) {
+          for(let night = 1; night <= whichOutput; ++night) {
+            if(document.getElementById("player" + mafiaplayer + "died" + night).checked) continue mafialoop;
+          }
           let possibility = {};
           for(let j = 1; j <= 5; ++j) {
             possibility[j] = ['sane', 'insane', 'paranoid', 'naive'];
@@ -174,7 +177,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player1died1" onchange="recompute()">died</label><br>
     <span class="player2name">Player 2</span> says
     <select id="player2choice1" onchange="recompute()">
       <option value="0"></option>
@@ -187,7 +190,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player2died1" onchange="recompute()">died</label><br>
     <span class="player3name">Player 3</span> says
     <select id="player3choice1" onchange="recompute()">
       <option value="0"></option>
@@ -200,7 +203,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player3died1" onchange="recompute()">died</label><br>
     <span class="player4name">Player 4</span> says
     <select id="player4choice1" onchange="recompute()">
       <option value="0"></option>
@@ -213,7 +216,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player4died1" onchange="recompute()">died</label><br>
     <span class="player5name">Player 5</span> says
     <select id="player5choice1" onchange="recompute()">
       <option value="0"></option>
@@ -226,7 +229,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select>
+    </select>, or <label><input type="checkbox" id="player5died1" onchange="recompute()">died</label>
     <pre id="output1" style="white-space: pre-wrap"></pre>
 
     <span class="player1name">Player 1</span> says
@@ -241,7 +244,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player1died2" onchange="recompute()">died</label><br>
     <span class="player2name">Player 2</span> says
     <select id="player2choice2" onchange="recompute()">
       <option value="0"></option>
@@ -254,7 +257,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player2died2" onchange="recompute()">died</label><br>
     <span class="player3name">Player 3</span> says
     <select id="player3choice2" onchange="recompute()">
       <option value="0"></option>
@@ -267,7 +270,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player3died2" onchange="recompute()">died</label><br>
     <span class="player4name">Player 4</span> says
     <select id="player4choice2" onchange="recompute()">
       <option value="0"></option>
@@ -280,7 +283,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player4died2" onchange="recompute()">died</label><br>
     <span class="player5name">Player 5</span> says
     <select id="player5choice2" onchange="recompute()">
       <option value="0"></option>
@@ -293,7 +296,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select>
+    </select>, or <label><input type="checkbox" id="player5died2" onchange="recompute()">died</label>
     <pre id="output2" style="white-space: pre-wrap"></pre>
 
     <span class="player1name">Player 1</span> says
@@ -308,7 +311,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player1died3" onchange="recompute()">died</label><br>
     <span class="player2name">Player 2</span> says
     <select id="player2choice3" onchange="recompute()">
       <option value="0"></option>
@@ -321,7 +324,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player2died3" onchange="recompute()">died</label><br>
     <span class="player3name">Player 3</span> says
     <select id="player3choice3" onchange="recompute()">
       <option value="0"></option>
@@ -334,7 +337,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player3died3" onchange="recompute()">died</label><br>
     <span class="player4name">Player 4</span> says
     <select id="player4choice3" onchange="recompute()">
       <option value="0"></option>
@@ -347,7 +350,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select><br>
+    </select>, or <label><input type="checkbox" id="player4died3" onchange="recompute()">died</label><br>
     <span class="player5name">Player 5</span> says
     <select id="player5choice3" onchange="recompute()">
       <option value="0"></option>
@@ -360,7 +363,7 @@
       <option value=""></option>
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
-    </select>
+    </select>, or <label><input type="checkbox" id="player5died3" onchange="recompute()">died</label>
     <pre id="output3" style="white-space: pre-wrap"></pre>
   </body>
 </html>
