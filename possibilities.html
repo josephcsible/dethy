@@ -82,7 +82,7 @@
         }).join("\n")
       }
       function recompute() {
-        for(let i = 0; i < 1; ++i) {
+        for(let i = 0; i < 2; ++i) {
           recomputeOutput(i);
         }
       }
@@ -161,5 +161,72 @@
       <option value="guilty">guilty</option>
     </select>
     <pre id="output0" style="white-space: pre-wrap"></pre>
+
+    <span class="player1name">Player 1</span> says
+    <select id="player1choice1" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player4name" value="4">Player 4</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player1result1" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <span class="player2name">Player 2</span> says
+    <select id="player2choice1" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player4name" value="4">Player 4</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player2result1" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <span class="player3name">Player 3</span> says
+    <select id="player3choice1" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player4name" value="4">Player 4</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player3result1" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <span class="player4name">Player 4</span> says
+    <select id="player4choice1" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player5name" value="5">Player 5</option>
+    </select> is
+    <select id="player4result1" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select><br>
+    <span class="player5name">Player 5</span> says
+    <select id="player5choice1" onchange="recompute()">
+      <option value="0"></option>
+      <option class="player1name" value="1">Player 1</option>
+      <option class="player2name" value="2">Player 2</option>
+      <option class="player3name" value="3">Player 3</option>
+      <option class="player4name" value="4">Player 4</option>
+    </select> is
+    <select id="player5result1" onchange="recompute()">
+      <option value=""></option>
+      <option value="innocent">innocent</option>
+      <option value="guilty">guilty</option>
+    </select>
+    <pre id="output1" style="white-space: pre-wrap"></pre>
   </body>
 </html>
