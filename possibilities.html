@@ -27,18 +27,20 @@
     </style>
     <script>
       "use strict";
-      function recompute() {
+      function recomputeOutput(whichOutput) {
         let possibilities = [];
         mafialoop: for(let mafiaplayer = 1; mafiaplayer <= 5; ++mafiaplayer) {
           let possibility = {};
           for(let j = 1; j <= 5; ++j) {
-            possibility[j] = [];
-            let jchoice = parseInt(document.getElementById("player" + j + "choice0").value);
-            let jresult = document.getElementById("player" + j + "result0").value;
-            if(jchoice == 0 || jresult == "" || (jchoice == mafiaplayer && jresult == "guilty") || (jchoice != mafiaplayer && jresult == "innocent")) possibility[j].push('sane');
-            if(jchoice == 0 || jresult == "" || (jchoice == mafiaplayer && jresult == "innocent") || (jchoice != mafiaplayer && jresult == "guilty")) possibility[j].push('insane');
-            if(jresult != "innocent") possibility[j].push('paranoid');
-            if(jresult != "guilty") possibility[j].push('naive');
+            possibility[j] = ['sane', 'insane', 'paranoid', 'naive'];
+            for(let night = 0; night <= whichOutput; ++night) {
+              let jchoice = parseInt(document.getElementById("player" + j + "choice" + night).value);
+              let jresult = document.getElementById("player" + j + "result" + night).value;
+              if(!(jchoice == 0 || jresult == "" || (jchoice == mafiaplayer && jresult == "guilty") || (jchoice != mafiaplayer && jresult == "innocent"))) possibility[j] = possibility[j].filter(sanity => sanity !== 'sane');
+              if(!(jchoice == 0 || jresult == "" || (jchoice == mafiaplayer && jresult == "innocent") || (jchoice != mafiaplayer && jresult == "guilty"))) possibility[j] = possibility[j].filter(sanity => sanity !== 'insane');
+              if(jresult == "innocent") possibility[j] = possibility[j].filter(sanity => sanity !== 'paranoid');
+              if(jresult == "guilty") possibility[j] = possibility[j].filter(sanity => sanity !== 'naive');
+            }
           }
           possibility[mafiaplayer] = ['MAFIA'];
           let changed;
@@ -71,13 +73,18 @@
           } while(changed);
           possibilities.push(possibility);
         }
-        document.getElementById('output').innerText = possibilities.map(possibility => {
+        document.getElementById('output' + whichOutput).innerText = possibilities.map(possibility => {
           let rv = '';
           for(let j = 1; j <= 5; ++j) {
             rv = rv + document.getElementById("player" + j + "name").value + ' is ' + possibility[j].join('/') + '\n';
           }
           return rv;
         }).join("\n")
+      }
+      function recompute() {
+        for(let i = 0; i < 1; ++i) {
+          recomputeOutput(i);
+        }
       }
       function changename(nameinput) {
         for(const el of document.getElementsByClassName(nameinput.id)) {
@@ -153,6 +160,6 @@
       <option value="innocent">innocent</option>
       <option value="guilty">guilty</option>
     </select>
-    <pre id="output" style="white-space: pre-wrap"></pre>
+    <pre id="output0" style="white-space: pre-wrap"></pre>
   </body>
 </html>
