@@ -180,14 +180,8 @@
         return goodVotes[Math.floor(random * goodVotes.length)];
       }
 
-      function getClearedPlayers(worlds) {
-        let clearedPlayers = 0;
-        for(let i = 0; i < 5; ++i) {
-          if(worlds.every(world => world[i] !== roles.MAFIAGOON)) {
-            ++clearedPlayers;
-          }
-        }
-        return clearedPlayers;
+      function getClearedPlayers(worlds, i = -1) {
+        return [0, 1, 2, 3, 4].filter(j => j === i || worlds.every(world => world[j] !== roles.MAFIAGOON));
       }
 
       function getGoodTarget(players, claims, i) {
@@ -197,8 +191,10 @@
         let clearedThreshold = 0, worldsThreshold = 72;
         for(const j of possibleTargets) {
           const innocents = getWorlds(players, [...claims, {investigator: i, target: j, verdict: INNOCENT}]);
+          const innocentCleared = getClearedPlayers(innocents, i);
           const guilties = getWorlds(players, [...claims, {investigator: i, target: j, verdict: GUILTY}]);
-          const worstCaseCleared = Math.min(getClearedPlayers(innocents), getClearedPlayers(guilties));
+          const guiltyCleared = getClearedPlayers(guilties, i);
+          const worstCaseCleared = Math.min(innocentCleared.length, guiltyCleared.length);
           const worstCaseWorlds = Math.max(innocents.length, guilties.length);
           if(worstCaseCleared > clearedThreshold) {
             clearedThreshold = worstCaseCleared;
