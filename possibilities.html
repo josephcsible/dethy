@@ -95,9 +95,18 @@
           recompute();
         }
       }
+      function resetgame() {
+        document.getElementsByTagName('form')[0].reset();
+        for(let i = 1; i <= 5; ++i) {
+          document.getElementById('player' + i + 'name').value = document.getElementsByClassName('player' + i + 'name')[0].innerText;
+        }
+        for(let i = 0; i < 4; ++i) {
+          document.getElementById('output' + i).innerText = '';
+        }
+      }
     </script>
   </head>
-  <body>
+  <body><form>
     <input type="text" id="player1name" value="Player 1" onchange="changename(this)"> says
     <select id="player1choice0" onchange="recompute()">
       <option value="0"></option>
@@ -365,5 +374,6 @@
       <option value="guilty">guilty</option>
     </select>, or <label><input type="checkbox" id="player5died3" onchange="recompute()">died</label>
     <pre id="output3" style="white-space: pre-wrap"></pre>
-  </body>
+    <input type="button" value="Reset game" onclick="resetgame()">
+  </form></body>
 </html>
