@@ -188,26 +188,35 @@
         const possibleTargets = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive && !claims.some(claim => claim.investigator === i && claim.target === j));
         if(!possibleTargets.length) return -1;
         const goodTargets = [];
-        let clearedThreshold = 0, worldsThreshold = 72;
+        let havePossiblySolving = false, clearedThreshold = 0, worldsThreshold = 72;
         for(const j of possibleTargets) {
           const innocents = getWorlds(players, [...claims, {investigator: i, target: j, verdict: INNOCENT}]);
           const innocentCleared = getClearedPlayers(innocents, i);
           const guilties = getWorlds(players, [...claims, {investigator: i, target: j, verdict: GUILTY}]);
           const guiltyCleared = getClearedPlayers(guilties, i);
+          const possiblySolving = innocentCleared.length === 4 || guiltyCleared.length === 4;
           const worstCaseCleared = Math.min(innocentCleared.length, guiltyCleared.length);
           const worstCaseWorlds = Math.max(innocents.length, guilties.length);
-          if(worstCaseCleared > clearedThreshold) {
+          if(possiblySolving && !havePossiblySolving) {
+            havePossiblySolving = true;
             clearedThreshold = worstCaseCleared;
             worldsThreshold = worstCaseWorlds;
             goodTargets.length = 0;
           }
-          if(worstCaseCleared === clearedThreshold) {
-            if(worstCaseWorlds < worldsThreshold) {
+          if(possiblySolving === havePossiblySolving) {
+            if(worstCaseCleared > clearedThreshold) {
+              clearedThreshold = worstCaseCleared;
               worldsThreshold = worstCaseWorlds;
               goodTargets.length = 0;
             }
-            if(worstCaseWorlds === worldsThreshold) {
-              goodTargets.push(j);
+            if(worstCaseCleared === clearedThreshold) {
+              if(worstCaseWorlds < worldsThreshold) {
+                worldsThreshold = worstCaseWorlds;
+                goodTargets.length = 0;
+              }
+              if(worstCaseWorlds === worldsThreshold) {
+                goodTargets.push(j);
+              }
             }
           }
         }
