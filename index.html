@@ -476,7 +476,7 @@
           }
         }
 
-        render({ players, dyingPlayer }, { claims }) {
+        render({ players, dyingPlayer, preventBlunders, claims: prevClaims }, { claims }) {
           return html`
             <form onSubmit=${this.recordClaims}>
               Claim last night's results:
@@ -493,7 +493,7 @@
                     <tr key=${i}>
                       <td>${investigator.name}</td>
                       <td><select disabled=${investigator.control !== controls.HUMAN} value=${claims[i].target} onChange=${this.updateTargets[i]}>
-                        ${players.flatMap((target, t) => t === i || (t !== dyingPlayer && !target.alive) ? [] : [html`
+                        ${players.flatMap((target, t) => t === i || (t !== dyingPlayer && !target.alive) || (preventBlunders && prevClaims.some(claim => claim.investigator === i && claim.target === t)) ? [] : [html`
                           <option value=${t}>${target.name}</option>
                         `])}
                         <option style="font-style:italic" value="-1">Nobody</option>
