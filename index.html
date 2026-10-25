@@ -498,7 +498,7 @@
         }
       }
 
-      class ComputerVotes extends Component {
+      class DayChoice extends Component {
         constructor(props) {
           super(props);
           this.state = {
@@ -506,22 +506,6 @@
           };
         }
 
-        render({ players, claims }, { randoms }) {
-          if(players.every(player => !player.alive || player.control === controls.HUMAN)) {
-            return null;
-          }
-          return html`
-            Computer players are voting as follows:
-            <ul>${players.map((player, i) => {
-              if(!player.alive || player.control === controls.HUMAN) return null;
-              const goodVote = getGoodVote(players, claims, i, randoms[i]);
-              return html`<li key=${i}>${player.name} votes for ${goodVote === -1 ? html`<i>Nobody</i>` : players[goodVote].name}</li>`;
-            })}</ul>
-          `;
-        }
-      }
-
-      class DayChoice extends Component {
         selectPlayer = ({ target: { value } }) => this.setState({ selectedPlayer: parseInt(value) });
 
         playerDisabled(i) {
@@ -567,8 +551,17 @@
           document.removeEventListener('keyup', this.onKeyup);
         }
 
-        render({ players }, { selectedPlayer = -2 }) {
+        render({ players, claims }, { randoms, selectedPlayer = -2 }) {
+          const computerVotes = players.every(player => !player.alive || player.control === controls.HUMAN) ? null : html`
+            Computer players are voting as follows:
+            <ul>${players.map((player, i) => {
+              if(!player.alive || player.control === controls.HUMAN) return null;
+              const goodVote = getGoodVote(players, claims, i, randoms[i]);
+              return html`<li key=${i}>${player.name} votes for ${goodVote === -1 ? html`<i>Nobody</i>` : players[goodVote].name}</li>`;
+            })}</ul>
+          `;
           return html`
+            ${computerVotes}
             <form onSubmit=${this.choose}>
               Who did the Town vote to lynch?
               <ol>
@@ -836,8 +829,7 @@
           case phases.DAY:
             return html`
               <${Actions} actions=${state.actions} />
-              <${ComputerVotes} players=${state.players} claims=${state.claims} />
-              <${DayChoice} players=${state.players} preventBlunders=${state.preventBlunders} choose=${this.confirmDayChoice} />
+              <${DayChoice} players=${state.players} claims=${state.claims} preventBlunders=${state.preventBlunders} choose=${this.confirmDayChoice} />
             `;
           case phases.ENDGAME:
             return html`
