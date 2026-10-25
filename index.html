@@ -270,10 +270,10 @@
               ${players.map((player, i) => html`
                 <li key=${i}>
                   <input type="text" value=${player.name} onInput=${updateNames[i]} />
-                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HUMAN} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
-                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.EASY} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.EASY} onChange=${updateControls[i]} />${controls.EASY}</label>
-                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.MEDIUM} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.MEDIUM} onChange=${updateControls[i]} />${controls.MEDIUM}</label>
-                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HARD} disabled=${player.control === controls.HUMAN && nonhumanPlayers > 1} checked=${player.control === controls.HARD} onChange=${updateControls[i]} />${controls.HARD}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HUMAN} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.EASY} checked=${player.control === controls.EASY} onChange=${updateControls[i]} />${controls.EASY}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.MEDIUM} checked=${player.control === controls.MEDIUM} onChange=${updateControls[i]} />${controls.MEDIUM}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HARD} checked=${player.control === controls.HARD} onChange=${updateControls[i]} />${controls.HARD}</label>
                 </li>
               `)}
             </ol>
@@ -444,7 +444,7 @@
         });
 
         recordClaims = event => {
-          event.preventDefault();
+          if(event) event.preventDefault();
           if(!this.submittable()) return;
           const claims = [...this.state.claims];
           const mafia = this.props.players.findIndex(player => player.role === roles.MAFIAGOON);
@@ -454,6 +454,12 @@
             claims[mafia] = {target, verdict: getGoodLie(this.props.players, [...this.props.claims, ...this.convertClaims(this.props.players, claims)], mafia, target) === GUILTY ? 'guilty' : 'innocent'};
           }
           this.props.recordClaims(this.convertClaims(this.props.players, claims));
+        }
+
+        componentDidMount() {
+          if(this.props.players.every(player => !player.alive || player.control !== controls.HUMAN)) {
+            this.recordClaims();
+          }
         }
 
         render({ players, dyingPlayer }, { claims }) {
@@ -651,7 +657,6 @@
           this.setState(prevState => {
             const shuffledRoles = shuffleRoles();
             return {
-              phase: phases.NIGHTPLAYER,
               day: 0,
               players: prevState.players.map(({ name, control }, i) => ({
                 name,
@@ -661,12 +666,12 @@
                 investigations: [null, null, null, null, null],
               })),
               claims: [],
-              playerTurn: prevState.players.findIndex(player => player.control === controls.HUMAN),
+              playerTurn: -1,
               dyingPlayer: -1,
               investigatedPlayer: -1,
               actions: prevState.useDawn ? [] : [{action: html`Night 0`, hidden: true}]
             };
-          });
+          }, () => this.advanceNight());
         };
 
         showNightChoice = event => {
@@ -700,7 +705,7 @@
         });
 
         advanceNight = event => {
-          event.preventDefault();
+          if(event) event.preventDefault();
           this.setState(prevState => {
             for(let i = prevState.playerTurn + 1; i < 5; ++i) {
               if(prevState.players[i].alive && prevState.players[i].control === controls.HUMAN) {
@@ -755,15 +760,15 @@
               actions
             };
           } else {
-            const playerTurn = players.findIndex(player => player.alive && player.control === controls.HUMAN);
             actions.push({action: html`Night ${prevState.day}`, hidden: false});
             return {
-              phase: phases.NIGHTPLAYER,
               players,
-              playerTurn,
+              playerTurn: -1,
               actions
             };
           }
+        }, () => {
+          if(this.state.phase !== phases.ENDGAME) this.advanceNight();
         });
 
         newGame = event => {
