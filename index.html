@@ -261,7 +261,7 @@
         return Math.random() < probability ? INNOCENT : GUILTY;
       }
 
-      function NameEntry({ players, updateNames, updateControls, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, startGame }) {
+      function NameEntry({ players, updateNames, updateControls, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, singleplayerRole, updateSingleplayerRole, startGame }) {
         const nonhumanPlayers = players.filter(player => player.control !== controls.HUMAN).length;
         return html`
           <form onSubmit=${startGame}>
@@ -279,6 +279,13 @@
             </ol>
             <label><input type="checkbox" checked=${preventBlunders} onClick=${updatePreventBlunders} />Prevent blunders</label><br />
             <label><input type="checkbox" checked=${useDawn} onClick=${updateUseDawn} disabled=${nonhumanPlayers > 0} />Record claims at dawn</label><br />
+            <span hidden=${nonhumanPlayers !== 4}>
+              Single player role choice:
+              <label><input type="radio" name="singleplayerRole" value="random" checked=${singleplayerRole === "random"} onChange=${updateSingleplayerRole} /> Random</label>
+              <label><input type="radio" name="singleplayerRole" value="towncop" checked=${singleplayerRole === "towncop"} onChange=${updateSingleplayerRole} /> <span class="town">Town Cop</span></label>
+              <label><input type="radio" name="singleplayerRole" value="mafiagoon" checked=${singleplayerRole === "mafiagoon"} onChange=${updateSingleplayerRole} /> <span class="mafia">Mafia Goon</span></label>
+              <br />
+            </span>
             <button type="submit">Start Game</button>
           </form>
         `;
@@ -649,6 +656,7 @@
       class Dethy extends Component {
         state = {
           useDawn: false,
+          singleplayerRole: "random",
           phase: phases.NAMEENTRY,
           day: 0,
           players: [
@@ -710,11 +718,23 @@
 
         updatePreventBlunders = event => this.setState({ preventBlunders: event.target.checked });
         updateUseDawn = event => this.setState({ useDawn: event.target.checked });
+        updateSingleplayerRole = event => this.setState({ singleplayerRole: event.target.value });
 
         startGame = event => {
           event.preventDefault();
           this.setState(prevState => {
             const shuffledRoles = shuffleRoles();
+            if(prevState.players.filter(player => player.control === controls.HUMAN).length === 1 && prevState.singleplayerRole !== "random") {
+              const humanPlayer = prevState.players.findIndex(player => player.control === controls.HUMAN);
+              if(prevState.singleplayerRole === "mafiagoon" && shuffledRoles[humanPlayer] !== roles.MAFIAGOON) {
+                const oldMafia = shuffledRoles.indexOf(roles.MAFIAGOON);
+                shuffledRoles[oldMafia] = shuffledRoles[humanPlayer];
+                shuffledRoles[humanPlayer] = roles.MAFIAGOON;
+              } else if(prevState.singleplayerRole === "towncop" && shuffledRoles[humanPlayer] === roles.MAFIAGOON) {
+                const rotate = Math.floor(Math.random() * 4) + 1;
+                shuffledRoles.unshift(...shuffledRoles.splice(rotate, 5 - rotate));
+              }
+            }
             return {
               day: 0,
               players: prevState.players.map(({ name, control }, i) => ({
@@ -865,7 +885,7 @@
           switch(state.phase) {
           case phases.NAMEENTRY:
             return html`
-              <${NameEntry} players=${state.players} updateNames=${this.updateNames} updateControls=${this.updateControls} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} useDawn=${state.useDawn} updateUseDawn=${this.updateUseDawn} startGame=${this.startGame} />
+              <${NameEntry} players=${state.players} updateNames=${this.updateNames} updateControls=${this.updateControls} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} useDawn=${state.useDawn} updateUseDawn=${this.updateUseDawn} singleplayerRole=${this.state.singleplayerRole} updateSingleplayerRole=${this.updateSingleplayerRole} startGame=${this.startGame} />
             `;
           case phases.NIGHTPLAYER:
             return html`
