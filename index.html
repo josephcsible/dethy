@@ -545,7 +545,7 @@
 
         componentDidMount() {
           document.addEventListener('keyup', this.onKeyup);
-          const majority = Math.ceil(this.props.players.filter(player => player.alive).length / 2);
+          const majority = Math.ceil(this.props.players.filter(player => player.alive + 1).length / 2);
           const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
           const minimumComputerVotes = majority - livingHumans;
           const votesOn = [0,0,0,0,0];
