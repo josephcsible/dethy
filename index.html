@@ -87,7 +87,8 @@
         NIGHTRESULT: "nightresult",
         DAWN: "dawn",
         DAY: "day",
-        ENDGAME: "endgame"
+        ENDGAME: "endgame",
+        BATCHRESULT: "batchresult"
       };
 
       const roles = {
@@ -261,7 +262,7 @@
         return Math.random() < probability ? INNOCENT : GUILTY;
       }
 
-      function NameEntry({ players, updateNames, updateControls, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, singleplayerRole, updateSingleplayerRole, startGame }) {
+      function NameEntry({ players, updateNames, updateControls, preventBlunders, updatePreventBlunders, useDawn, updateUseDawn, singleplayerRole, updateSingleplayerRole, batchMode, updateBatchMode, batches, updateBatches, startGame }) {
         const nonhumanPlayers = players.filter(player => player.control !== controls.HUMAN).length;
         return html`
           <form onSubmit=${startGame}>
@@ -270,7 +271,7 @@
               ${players.map((player, i) => html`
                 <li key=${i}>
                   <input type="text" value=${player.name} onInput=${updateNames[i]} />
-                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HUMAN} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
+                  <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HUMAN} disabled=${batchMode} checked=${player.control === controls.HUMAN} onChange=${updateControls[i]} />${controls.HUMAN}</label>
                   <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.EASY} checked=${player.control === controls.EASY} onChange=${updateControls[i]} />${controls.EASY}</label>
                   <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.MEDIUM} checked=${player.control === controls.MEDIUM} onChange=${updateControls[i]} />${controls.MEDIUM}</label>
                   <label hidden=${!useDawn}><input type="radio" name="player${i}control" value=${controls.HARD} checked=${player.control === controls.HARD} onChange=${updateControls[i]} />${controls.HARD}</label>
@@ -279,6 +280,10 @@
             </ol>
             <label><input type="checkbox" checked=${preventBlunders} onClick=${updatePreventBlunders} />Prevent blunders</label><br />
             <label><input type="checkbox" checked=${useDawn} onClick=${updateUseDawn} disabled=${nonhumanPlayers > 0} />Record claims at dawn</label><br />
+            <span hidden=${nonhumanPlayers !== 5}>
+              <label><input type="checkbox" checked=${batchMode} onClick=${updateBatchMode} />Batch mode</label><br />
+              <label>Batches: <input type="number" min=1 value=${batches} onInput=${updateBatches} /></label><br />
+            </span>
             <span hidden=${nonhumanPlayers !== 4}>
               Single player role choice:
               <label><input type="radio" name="singleplayerRole" value="random" checked=${singleplayerRole === "random"} onChange=${updateSingleplayerRole} /> Random</label>
@@ -654,6 +659,12 @@
       }
 
       class Endgame extends Component {
+        componentDidMount() {
+          if(this.props.addToBatch) {
+            this.props.addToBatch(document.body.innerText);
+          }
+        }
+
         render({ actions, players, newGame }) {
           return html`
             <${Actions} actions=${actions} showhidden />
@@ -673,6 +684,9 @@
 
       class Dethy extends Component {
         state = {
+          batchMode: false,
+          batches: 100,
+          batchesDone: [],
           useDawn: false,
           singleplayerRole: "random",
           phase: phases.NAMEENTRY,
@@ -737,9 +751,20 @@
         updatePreventBlunders = event => this.setState({ preventBlunders: event.target.checked });
         updateUseDawn = event => this.setState({ useDawn: event.target.checked });
         updateSingleplayerRole = event => this.setState({ singleplayerRole: event.target.value });
+        updateBatchMode = event => this.setState({ batchMode: event.target.checked });
+        updateBatches = event => this.setState({ batches: event.target.valueAsNumber });
+
+        addToBatch = text => this.setState(prevState => {
+          return {
+            batchesDone: [...prevState.batchesDone, text],
+            phase: phases.BATCHRESULT,
+          };
+        }, () => {
+          if(this.state.batchesDone.length < this.state.batches - 1) this.startGame(); // TODO figure out why I need this -1
+        });
 
         startGame = event => {
-          event.preventDefault();
+          if(event) event.preventDefault();
           this.setState(prevState => {
             const shuffledRoles = shuffleRoles();
             if(prevState.players.filter(player => player.control === controls.HUMAN).length === 1 && prevState.singleplayerRole !== "random") {
@@ -870,7 +895,7 @@
 
         newGame = event => {
           event.preventDefault();
-          this.setState({ phase: phases.NAMEENTRY });
+          this.setState({ phase: phases.NAMEENTRY, batchesDone: [] });
         }
 
         constructor(props) {
@@ -903,7 +928,7 @@
           switch(state.phase) {
           case phases.NAMEENTRY:
             return html`
-              <${NameEntry} players=${state.players} updateNames=${this.updateNames} updateControls=${this.updateControls} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} useDawn=${state.useDawn} updateUseDawn=${this.updateUseDawn} singleplayerRole=${this.state.singleplayerRole} updateSingleplayerRole=${this.updateSingleplayerRole} startGame=${this.startGame} />
+              <${NameEntry} players=${state.players} updateNames=${this.updateNames} updateControls=${this.updateControls} preventBlunders=${state.preventBlunders} updatePreventBlunders=${this.updatePreventBlunders} useDawn=${state.useDawn} updateUseDawn=${this.updateUseDawn} singleplayerRole=${this.state.singleplayerRole} updateSingleplayerRole=${this.updateSingleplayerRole} batchMode=${this.state.batchMode} updateBatchMode=${this.updateBatchMode} batches=${this.state.batches} updateBatches=${this.updateBatches} startGame=${this.startGame} />
             `;
           case phases.NIGHTPLAYER:
             return html`
@@ -937,8 +962,15 @@
             `;
           case phases.ENDGAME:
             return html`
-              <${Endgame} actions=${state.actions} players=${state.players} newGame=${this.newGame} />
+              <${Endgame} actions=${state.actions} players=${state.players} newGame=${this.newGame} addToBatch=${this.state.batchMode && this.addToBatch} />
             `;
+          case phases.BATCHRESULT:
+            return html`
+              <form onSubmit=${this.newGame}>
+                <button type="submit">New Game</button>
+                <pre>${this.state.batchesDone.join("\n")}</pre>
+              </form>
+            `
           };
         }
       }
