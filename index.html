@@ -545,6 +545,22 @@
 
         componentDidMount() {
           document.addEventListener('keyup', this.onKeyup);
+          const majority = Math.ceil(this.props.players.filter(player => player.alive).length / 2);
+          const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
+          const minimumComputerVotes = majority - livingHumans;
+          const votesOn = [0,0,0,0,0];
+          this.props.players.forEach((player, i) => {
+            if(!player.alive || player.control === controls.HUMAN) return;
+            const goodVote = getGoodVote(this.props.players, this.props.claims, i, this.state.randoms[i]);
+            if(goodVote !== -1) ++votesOn[goodVote];
+          });
+          for(let i = 0; i < 5; ++i) {
+            if(votesOn[i] >= majority) {
+              this.props.choose(i);
+              return;
+            }
+          }
+          if(Math.max(...votesOn) < minimumComputerVotes) this.props.choose(-1);
         }
 
         componentWillUnmount() {
