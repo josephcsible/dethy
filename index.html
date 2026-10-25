@@ -549,18 +549,20 @@
           const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
           const minimumComputerVotes = majority - livingHumans;
           const votesOn = [0,0,0,0,0];
+          const actions = [];
           this.props.players.forEach((player, i) => {
             if(!player.alive || player.control === controls.HUMAN) return;
             const goodVote = getGoodVote(this.props.players, this.props.claims, i, this.state.randoms[i]);
+            actions.push({action: html`${player.name} voted for ${goodVote === -1 ? html`<i>Nobody</i>` : this.props.players[goodVote].name}`, hidden: false});
             if(goodVote !== -1) ++votesOn[goodVote];
           });
           for(let i = 0; i < 5; ++i) {
             if(votesOn[i] >= majority) {
-              this.props.choose(i);
+              this.props.choose(i, actions);
               return;
             }
           }
-          if(Math.max(...votesOn) < minimumComputerVotes) this.props.choose(-1);
+          if(Math.max(...votesOn) < minimumComputerVotes) this.props.choose(-1, actions);
         }
 
         componentWillUnmount() {
@@ -756,8 +758,8 @@
           return { phase: phases.DAY, claims: [...prevState.claims, ...claims], actions };
         });
 
-        confirmDayChoice = selectedPlayer => this.setState(prevState => {
-          const players = [...prevState.players], actions = [...prevState.actions];
+        confirmDayChoice = (selectedPlayer, newActions = []) => this.setState(prevState => {
+          const players = [...prevState.players], actions = [...prevState.actions, ...newActions];
           if(selectedPlayer !== -1) {
             players[selectedPlayer] = {...players[selectedPlayer], alive: false};
             actions.push({action: html`<span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span> was lynched`, hidden: false});
