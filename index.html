@@ -653,6 +653,24 @@
         }
       }
 
+      class Endgame extends Component {
+        render({ actions, players, newGame }) {
+          return html`
+            <${Actions} actions=${actions} showhidden />
+            <form onSubmit=${newGame}>
+              ${players.some(player => player.alive && player.role === roles.MAFIAGOON) ? html`<span class="mafia">Mafia Wins!</span>` : html`<span class="town">Town Wins!</span>`}<br />
+              Role List:
+              <ul>
+                ${players.map((player, i) => html`
+                  <li key=${i} class=${player.role === roles.MAFIAGOON ? "mafia" : "town"}>${player.name} - ${player.role}</li>
+                `)}
+              </ul>
+              <button type="submit">New Game</button>
+            </form>
+          `;
+        }
+      }
+
       class Dethy extends Component {
         state = {
           useDawn: false,
@@ -919,17 +937,7 @@
             `;
           case phases.ENDGAME:
             return html`
-              <${Actions} actions=${state.actions} showhidden />
-              <form onSubmit=${this.newGame}>
-                ${state.players.some(player => player.alive && player.role === roles.MAFIAGOON) ? html`<span class="mafia">Mafia Wins!</span>` : html`<span class="town">Town Wins!</span>`}<br />
-                Role List:
-                <ul>
-                  ${state.players.map((player, i) => html`
-                    <li key=${i} class=${player.role === roles.MAFIAGOON ? "mafia" : "town"}>${player.name} - ${player.role}</li>
-                  `)}
-                </ul>
-                <button type="submit">New Game</button>
-              </form>
+              <${Endgame} actions=${state.actions} players=${state.players} newGame=${this.newGame} />
             `;
           };
         }
