@@ -501,9 +501,49 @@
       class DayChoice extends Component {
         constructor(props) {
           super(props);
-          this.state = {
-            randoms: [Math.random(), Math.random(), Math.random(), Math.random(), Math.random()]
-          };
+          for(;;) {
+            const randoms = [Math.random(), Math.random(), Math.random(), Math.random(), Math.random()];
+            const living = this.props.players.filter(player => player.alive).length;
+            const majority = Math.ceil((living + 1) / 2);
+            const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
+            const minimumComputerVotes = majority - livingHumans;
+            const votesOn = [0,0,0,0,0];
+            const actions = [];
+            this.props.players.forEach((player, i) => {
+              if(!player.alive || player.control === controls.HUMAN) return;
+              const goodVote = getGoodVote(this.props.players, this.props.claims, i, randoms[i]);
+              actions.push({action: html`${player.name} voted for ${goodVote === -1 ? html`<i>Nobody</i>` : this.props.players[goodVote].name}`, hidden: false});
+              if(goodVote !== -1) ++votesOn[goodVote];
+            });
+            let computerChoice = -2;
+            let anyPossible = false;
+            for(let i = 0; i < 5; ++i) {
+              if(votesOn[i] >= minimumComputerVotes + (this.props.players[i].control === controls.HUMAN)) {
+                anyPossible = true;
+              }
+              if(votesOn[i] >= majority) {
+                computerChoice = i;
+                break;
+              }
+            }
+            if(!anyPossible) {
+              if(living == 3) {
+                // edge case: three players left alive, all computer, all equally suspicious.
+                // failing to lynch in this case is an instant Mafia win, so re-randomize until they agree on a lynch.
+                continue;
+              }
+              computerChoice = -1;
+            }
+            this.state = {
+              randoms,
+              living,
+              minimumComputerVotes,
+              votesOn,
+              actions,
+              computerChoice,
+            };
+            return;
+          }
         }
 
         selectPlayer = ({ target: { value } }) => this.setState({ selectedPlayer: parseInt(value) });
@@ -511,19 +551,21 @@
         playerDisabled(i) {
           if(!this.props.players[i].alive) {
             return html` <i>(Dead players cannot be lynched.)</i>`;
+          } else if(this.state.votesOn[i] < this.state.minimumComputerVotes + (this.props.players[i].control === controls.HUMAN)) {
+            return html` <i>(A majority of votes for this player is not possible.)</i>`;
           } else {
             return null;
           }
         }
 
         lyloBlunder() {
-          return this.props.preventBlunders && this.props.players.filter(player => player.alive).length <= 3 && "(Blunder: The Mafia would immediately win.)";
+          return this.props.preventBlunders && this.state.living <= 3 && "(Blunder: The Mafia would immediately win.)";
         }
 
         choose = event => {
           event.preventDefault();
           if(this.state.selectedPlayer !== -2) {
-            this.props.choose(this.state.selectedPlayer);
+            this.props.choose(this.state.selectedPlayer, this.state.actions);
           }
         }
 
@@ -545,24 +587,9 @@
 
         componentDidMount() {
           document.addEventListener('keyup', this.onKeyup);
-          const majority = Math.ceil(this.props.players.filter(player => player.alive + 1).length / 2);
-          const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
-          const minimumComputerVotes = majority - livingHumans;
-          const votesOn = [0,0,0,0,0];
-          const actions = [];
-          this.props.players.forEach((player, i) => {
-            if(!player.alive || player.control === controls.HUMAN) return;
-            const goodVote = getGoodVote(this.props.players, this.props.claims, i, this.state.randoms[i]);
-            actions.push({action: html`${player.name} voted for ${goodVote === -1 ? html`<i>Nobody</i>` : this.props.players[goodVote].name}`, hidden: false});
-            if(goodVote !== -1) ++votesOn[goodVote];
-          });
-          for(let i = 0; i < 5; ++i) {
-            if(votesOn[i] >= majority) {
-              this.props.choose(i, actions);
-              return;
-            }
+          if(this.state.computerChoice !== -2) {
+            this.props.choose(this.state.computerChoice, this.state.actions);
           }
-          if(Math.max(...votesOn) < minimumComputerVotes) this.props.choose(-1, actions);
         }
 
         componentWillUnmount() {
@@ -758,7 +785,7 @@
           return { phase: phases.DAY, claims: [...prevState.claims, ...claims], actions };
         });
 
-        confirmDayChoice = (selectedPlayer, newActions = []) => this.setState(prevState => {
+        confirmDayChoice = (selectedPlayer, newActions) => this.setState(prevState => {
           const players = [...prevState.players], actions = [...prevState.actions, ...newActions];
           if(selectedPlayer !== -1) {
             players[selectedPlayer] = {...players[selectedPlayer], alive: false};
