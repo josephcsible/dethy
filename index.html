@@ -459,6 +459,20 @@
         componentDidMount() {
           if(this.props.players.every(player => !player.alive || player.control !== controls.HUMAN)) {
             this.recordClaims();
+            return;
+          }
+          if(this.props.players.filter(player => player.control === controls.HUMAN).length === 1) {
+            const role = this.props.players[this.props.playerTurn].role;
+            if(role === roles.MAFIAGOON) return;
+            if(this.props.investigatedPlayer === -1) {
+              this.recordClaims();
+            } else {
+              this.setState(prevState => {
+                const claims = [...prevState.claims];
+                claims[this.props.playerTurn] = {target: this.props.investigatedPlayer, verdict: getInvestigationResult(role, this.props.players[this.props.investigatedPlayer].role) === GUILTY ? 'guilty' : 'innocent'};
+                return {claims};
+              }, () => this.recordClaims());
+            }
           }
         }
 
@@ -755,7 +769,7 @@
             for(let i = prevState.playerTurn + 1; i < 5; ++i) {
               if(prevState.players[i].alive && prevState.players[i].control === controls.HUMAN) {
                 return {
-                  phase: phases.NIGHTPLAYER,
+                  phase: prevState.players.filter(player => player.control === controls.HUMAN).length === 1 ? phases.NIGHTCHOICE : phases.NIGHTPLAYER,
                   playerTurn: i
                 };
               }
@@ -876,7 +890,7 @@
           case phases.DAWN:
             return html`
               <${Actions} actions=${state.actions} />
-              <${Dawn} players=${state.players} claims=${state.claims} dyingPlayer=${state.dyingPlayer} preventBlunders=${state.preventBlunders} recordClaims=${this.recordClaims} />
+              <${Dawn} players=${state.players} claims=${state.claims} playerTurn=${state.playerTurn} investigatedPlayer=${state.investigatedPlayer} dyingPlayer=${state.dyingPlayer} preventBlunders=${state.preventBlunders} recordClaims=${this.recordClaims} />
             `;
           case phases.DAY:
             return html`
