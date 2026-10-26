@@ -228,24 +228,15 @@
         const possibleKills = [0, 1, 2, 3, 4].filter(j => j !== i && players[j].alive);
         const worlds = getWorlds(players, claims);
         const goodKills = [];
+        let threshold = 0;
         for(const j of possibleKills) {
-          if(worlds.every(world => [roles.SANECOP, roles.INSANECOP].includes(world[j]))) {
-            goodKills.push(j);
+          if(worlds.some(world => world[j] === roles.MAFIAGOON)) continue;
+          const n = worlds.filter(world => [roles.SANECOP, roles.INSANECOP].includes(world[j])).length;
+          if(n > threshold) {
+            threshold = n;
+            goodKills.length = 0;
           }
-        }
-        if(goodKills.length) {
-          return goodKills[Math.floor(Math.random() * goodKills.length)];
-        }
-        for(const j of possibleKills) {
-          if(worlds.every(world => world[j] !== roles.MAFIAGOON) && worlds.some(world => [roles.SANECOP, roles.INSANECOP].includes(world[j]))) {
-            goodKills.push(j);
-          }
-        }
-        if(goodKills.length) {
-          return goodKills[Math.floor(Math.random() * goodKills.length)];
-        }
-        for(const j of possibleKills) {
-          if(worlds.every(world => world[j] !== roles.MAFIAGOON)) {
+          if(n === threshold) {
             goodKills.push(j);
           }
         }
