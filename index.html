@@ -779,7 +779,7 @@
                 investigations: [null, null, null, null, null],
               })),
               claims: [],
-              playerTurn: -1,
+              playerTurn: prevState.players.filter(player => player.control === controls.HUMAN).length === 1 && prevState.singleplayerRole === "mafiagoon" ? 4 : -1,
               dyingPlayer: -1,
               investigatedPlayer: -1,
               actions: prevState.useDawn ? [] : [{action: html`Night 0`, hidden: true}]
