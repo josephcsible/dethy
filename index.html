@@ -815,6 +815,8 @@
               actions
             };
           }
+        }, () => {
+          if(this.state.players.filter(player => player.control === controls.HUMAN).length === 1 && this.state.players[this.state.playerTurn].role === roles.MAFIAGOON) this.advanceNight();
         });
 
         advanceNight = event => {
