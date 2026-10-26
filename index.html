@@ -577,10 +577,10 @@
         }
 
         nobodyDisabled() {
-          if(this.props.preventBlunders && this.state.living <= 3) {
-            return "(Blunder: The Mafia would immediately win.)";
-          } else if(this.state.computerChoice >= 0) {
+          if(this.state.computerChoice >= 0) {
             return "(A majority of votes for " + this.props.players[this.state.computerChoice].name + " is present.)";
+          } else if(this.props.preventBlunders && this.state.living <= 3) {
+            return "(Blunder: The Mafia would immediately win.)";
           } else {
             return null;
           }
