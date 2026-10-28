@@ -28,11 +28,16 @@
     <script>
       "use strict";
       function recomputeOutput(whichOutput) {
+        let living = [];
         let possibilities = [];
         mafialoop: for(let mafiaplayer = 1; mafiaplayer <= 5; ++mafiaplayer) {
           for(let night = 1; night <= whichOutput; ++night) {
-            if(document.getElementById("player" + mafiaplayer + "died" + night).checked) continue mafialoop;
+            if(document.getElementById("player" + mafiaplayer + "died" + night).checked) {
+              living[mafiaplayer] = false;
+              continue mafialoop;
+            }
           }
+          living[mafiaplayer] = true;
           let possibility = {};
           for(let j = 1; j <= 5; ++j) {
             possibility[j] = ['sane', 'insane', 'paranoid', 'naive'];
@@ -79,7 +84,7 @@
         document.getElementById('output' + whichOutput).innerText = possibilities.map(possibility => {
           let rv = '';
           for(let j = 1; j <= 5; ++j) {
-            rv = rv + document.getElementById("player" + j + "name").value + ' is ' + possibility[j].join('/') + '\n';
+            rv = rv + document.getElementById("player" + j + "name").value + (living[j] ? ' is ' : ' was ') + possibility[j].join('/') + '\n';
           }
           return rv;
         }).join("\n")
