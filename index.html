@@ -280,6 +280,9 @@
           }
         }
         if(goodKills.length) {
+          if(!haveNonDeadwood && unclearedKills.length >= 2 && deadwood.length < players.filter(player => player.alive).length) {
+            return unclearedKills[Math.floor(Math.random() * unclearedKills.length)];
+          }
           return goodKills[Math.floor(Math.random() * goodKills.length)];
         }
         return possibleKills[Math.floor(Math.random() * possibleKills.length)];
