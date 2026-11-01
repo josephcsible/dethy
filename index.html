@@ -157,6 +157,31 @@
         });
       }
 
+      function getDeadwood(players, claims) {
+        const worlds = getWorlds(players, claims);
+        const deadwood = [];
+        investigatorloop: for(let investigator = 0; investigator < 5; ++investigator) {
+          if(!players[investigator].alive) continue;
+          const seenInnocent = [false, false, false, false, false];
+          const seenGuilty = [false, false, false, false, false];
+          for(const world of worlds) {
+            if(world[investigator] === roles.MAFIAGOON) continue;
+            for(let target = 0; target < 5; ++target) {
+              if(investigator === target || !players[target].alive) continue;
+              if(getInvestigationResult(world[investigator], world[target]) === GUILTY) {
+                if(seenInnocent[target]) continue investigatorloop;
+                seenGuilty[target] = true;
+              } else {
+                if(seenGuilty[target]) continue investigatorloop;
+                seenInnocent[target] = true;
+              }
+            }
+          }
+          deadwood.push(investigator);
+        }
+        return deadwood;
+      }
+
       function getGoodVote(players, claims, i, random = Math.random()) {
         const worlds = getWorlds(players, claims);
         const goodVotes = [];
