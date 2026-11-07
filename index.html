@@ -203,6 +203,9 @@
           }
         }
         if(alive % 2 === 0 && suspicious > 1) return -1;
+        for(const previousVote of players[i].votes.toReversed()) {
+          if(goodVotes.includes(previousVote)) return previousVote;
+        }
         return goodVotes[Math.floor(random * goodVotes.length)];
       }
 
