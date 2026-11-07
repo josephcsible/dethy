@@ -567,11 +567,11 @@
             const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
             const minimumComputerVotes = majority - livingHumans;
             const votesOn = [0,0,0,0,0];
-            const actions = [];
+            const votes = [-2,-2,-2,-2,-2];
             this.props.players.forEach((player, i) => {
               if(!player.alive || player.control === controls.HUMAN) return;
               const goodVote = getGoodVote(this.props.players, this.props.claims, i, randoms[i]);
-              actions.push({action: html`${player.name} voted for ${goodVote === -1 ? html`<i>Nobody</i>` : this.props.players[goodVote].name}`, hidden: false});
+              votes[i] = goodVote;
               if(goodVote !== -1) ++votesOn[goodVote];
             });
             let computerChoice = -2;
@@ -599,7 +599,7 @@
               livingHumans,
               minimumComputerVotes,
               votesOn,
-              actions,
+              votes,
               computerChoice,
             };
             return;
@@ -631,7 +631,7 @@
         choose = event => {
           event.preventDefault();
           if(this.state.selectedPlayer !== -2) {
-            this.props.choose(this.state.selectedPlayer, this.state.actions);
+            this.props.choose(this.state.selectedPlayer, this.state.votes);
           }
         }
 
@@ -654,7 +654,7 @@
         componentDidMount() {
           document.addEventListener('keyup', this.onKeyup);
           if(this.state.computerChoice !== -2 && !this.state.livingHumans) {
-            this.props.choose(this.state.computerChoice, this.state.actions);
+            this.props.choose(this.state.computerChoice, this.state.votes);
           }
         }
 
@@ -731,6 +731,7 @@
               role: roles.MAFIAGOON,
               alive: true,
               investigations: [null, null, null, null, null],
+              votes: [],
             },
             {
               name: "Player 2",
@@ -738,6 +739,7 @@
               role: roles.SANECOP,
               alive: true,
               investigations: [null, null, null, null, null],
+              votes: [],
             },
             {
               name: "Player 3",
@@ -745,6 +747,7 @@
               role: roles.INSANECOP,
               alive: true,
               investigations: [null, null, null, null, null],
+              votes: [],
             },
             {
               name: "Player 4",
@@ -752,6 +755,7 @@
               role: roles.PARANOIDCOP,
               alive: true,
               investigations: [null, null, null, null, null],
+              votes: [],
             },
             {
               name: "Player 5",
@@ -759,6 +763,7 @@
               role: roles.NAIVECOP,
               alive: true,
               investigations: [null, null, null, null, null],
+              votes: [],
             },
           ],
           claims: [],
@@ -819,6 +824,7 @@
                 role: shuffledRoles[i],
                 alive: true,
                 investigations: [null, null, null, null, null],
+                votes: [],
               })),
               claims: [],
               playerTurn: prevState.players.filter(player => player.control === controls.HUMAN).length === 1 && prevState.singleplayerRole === "mafiagoon" ? 4 : -1,
@@ -904,8 +910,13 @@
           return { phase: phases.DAY, claims: [...prevState.claims, ...claims], actions };
         });
 
-        confirmDayChoice = (selectedPlayer, newActions) => this.setState(prevState => {
-          const players = [...prevState.players], actions = [...prevState.actions, ...newActions];
+        confirmDayChoice = (selectedPlayer, votes) => this.setState(prevState => {
+          const players = [...prevState.players], actions = [...prevState.actions];
+          for(let i = 0; i < 5; ++i) {
+            if(votes[i] === -2) continue;
+            players[i] = {...players[i], votes: [...players[i].votes, votes[i]]};
+            actions.push({action: html`${players[i].name} voted for ${votes[i] === -1 ? html`<i>Nobody</i>` : players[votes[i]].name}`, hidden: false});
+          }
           if(selectedPlayer !== -1) {
             players[selectedPlayer] = {...players[selectedPlayer], alive: false};
             actions.push({action: html`<span class=${prevState.players[selectedPlayer].role === roles.MAFIAGOON ? "mafia" : "town"}>${prevState.players[selectedPlayer].name}</span> was lynched`, hidden: false});
