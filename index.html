@@ -568,11 +568,20 @@
             const majority = Math.ceil((living + 1) / 2);
             const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
             const minimumComputerVotes = majority - livingHumans;
+            const clearedPlayers = getClearedPlayers(getWorlds(this.props.players, this.props.claims));
             const votesOn = [0,0,0,0,0];
             const votes = [-2,-2,-2,-2,-2];
             this.props.players.forEach((player, i) => {
               if(!player.alive || player.control === controls.HUMAN) return;
-              const goodVote = getGoodVote(this.props.players, this.props.claims, i);
+              let goodVote = getGoodVote(this.props.players, this.props.claims, i);
+              if(living === 5 && clearedPlayers.length === 3 && clearedPlayers.includes(i)) {
+                for(const j of clearedPlayers) {
+                  if(votes[j] >= 0) {
+                    goodVote = votes[j];
+                    break;
+                  }
+                }
+              }
               votes[i] = goodVote;
               if(goodVote !== -1) ++votesOn[goodVote];
             });
