@@ -564,7 +564,6 @@
         constructor(props) {
           super(props);
           for(;;) {
-            const randoms = [Math.random(), Math.random(), Math.random(), Math.random(), Math.random()];
             const living = this.props.players.filter(player => player.alive).length;
             const majority = Math.ceil((living + 1) / 2);
             const livingHumans = this.props.players.filter(player => player.alive && player.control === controls.HUMAN).length;
@@ -573,7 +572,7 @@
             const votes = [-2,-2,-2,-2,-2];
             this.props.players.forEach((player, i) => {
               if(!player.alive || player.control === controls.HUMAN) return;
-              const goodVote = getGoodVote(this.props.players, this.props.claims, i, randoms[i]);
+              const goodVote = getGoodVote(this.props.players, this.props.claims, i);
               votes[i] = goodVote;
               if(goodVote !== -1) ++votesOn[goodVote];
             });
@@ -597,7 +596,6 @@
               computerChoice = -1;
             }
             this.state = {
-              randoms,
               living,
               livingHumans,
               minimumComputerVotes,
@@ -665,13 +663,12 @@
           document.removeEventListener('keyup', this.onKeyup);
         }
 
-        render({ players, claims }, { randoms, selectedPlayer = -2 }) {
+        render({ players }, { selectedPlayer = -2, votes }) {
           const computerVotes = players.every(player => !player.alive || player.control === controls.HUMAN) ? null : html`
             Computer players are voting as follows:
             <ul>${players.map((player, i) => {
               if(!player.alive || player.control === controls.HUMAN) return null;
-              const goodVote = getGoodVote(players, claims, i, randoms[i]);
-              return html`<li key=${i}>${player.name} votes for ${goodVote === -1 ? html`<i>Nobody</i>` : players[goodVote].name}</li>`;
+              return html`<li key=${i}>${player.name} votes for ${votes[i] === -1 ? html`<i>Nobody</i>` : players[votes[i]].name}</li>`;
             })}</ul>
           `;
           return html`
